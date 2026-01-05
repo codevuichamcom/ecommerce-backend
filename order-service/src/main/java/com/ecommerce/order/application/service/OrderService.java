@@ -99,8 +99,6 @@ public class OrderService {
                         reservedItems.add(new ReservedItem(item.getProductId(), item.getQuantity()));
 
                     case ReservationResult.InsufficientStock is -> {
-                        // Rollback previous reservations and fail
-                        rollbackReservations(reservedItems, orderId);
                         throw new ConflictException(
                                 "INSUFFICIENT_STOCK",
                                 String.format("Insufficient stock for product %s: requested %d, available %d",
@@ -108,7 +106,6 @@ public class OrderService {
                     }
 
                     case ReservationResult.ServiceUnavailable su -> {
-                        rollbackReservations(reservedItems, orderId);
                         throw new ConflictException("SERVICE_UNAVAILABLE", su.message());
                     }
                 }
