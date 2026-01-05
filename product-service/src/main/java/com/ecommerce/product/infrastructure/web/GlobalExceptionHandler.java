@@ -1,0 +1,98 @@
+package com.ecommerce.product.infrastructure.web;
+
+import com.ecommerce.common.dto.ApiResponse;
+import com.ecommerce.common.exception.BusinessException;
+import com.ecommerce.common.exception.ConflictException;
+import com.ecommerce.common.exception.NotFoundException;
+import com.ecommerce.common.exception.ValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Global exception handler using Java 21 pattern matching.
+ */
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    /**
+     * Handle business exceptions using pattern matching.
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException ex) {
+        log.warn("Business exception: {}", ex.getMessage());
+
+        // Java 21 pattern matching with sealed classes
+        HttpStatus status = switch (ex) {
+            case NotFoundException _ -> HttpStatus.NOT_FOUND;
+            case ConflictException _ -> HttpStatus.CONFLICT;
+            case ValidationException _ -> HttpStatus.BAD_REQUEST;
+        };
+
+        return ResponseEntity
+                .status(status)
+                .body(ApiResponse.error(ex.getErrorCode(), ex.getMessage()));
+    }
+
+    /**
+     * Handle validation errors from @Valid.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(
+            MethodArgumentNotValidException ex) {
+        var fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.groupingBy(
+                        error -> error.getField(),
+                        HashMap::new,
+                        Collectors.mapping(
+                                error -> error.getDefaultMessage(),
+                                Collectors.toList())));
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("VALIDATION_ERROR", "Validation failed", fieldErrors));
+    }
+
+    /**
+     * Handle illegal argument exceptions.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
+        log.warn("Illegal argument: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("INVALID_ARGUMENT", ex.getMessage()));
+    }
+
+    /**
+     * Handle illegal state exceptions.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException ex) {
+        log.warn("Illegal state: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("INVALID_STATE", ex.getMessage()));
+    }
+
+    /**
+     * Handle all other exceptions.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
+        log.error("Unexpected error", ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("INTERNAL_ERROR", "An unexpected error occurred"));
+    }
+}
