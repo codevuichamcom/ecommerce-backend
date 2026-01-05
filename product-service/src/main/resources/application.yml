@@ -26,8 +26,8 @@ spring:
     open-in-view: false
     properties:
       hibernate:
-        format_sql: true
-        default_batch_fetch_size: 20
+        "[format_sql]": true
+        "[default_batch_fetch_size]": 20
     show-sql: false
   
   # Flyway
@@ -56,6 +56,6 @@ springdoc:
 # Logging
 logging:
   level:
-    com.ecommerce: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+    "[com.ecommerce]": DEBUG
+    "[org.hibernate.SQL]": DEBUG
+    "[org.hibernate.type.descriptor.sql]": TRACE

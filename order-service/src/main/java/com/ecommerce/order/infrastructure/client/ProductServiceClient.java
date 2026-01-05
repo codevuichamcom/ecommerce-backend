@@ -2,13 +2,14 @@ package com.ecommerce.order.infrastructure.client;
 
 import com.ecommerce.common.exception.NotFoundException;
 import com.ecommerce.order.application.port.out.ProductServicePort;
+import com.ecommerce.order.infrastructure.config.ServiceProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * HTTP client for Product service using WebClient.
@@ -22,8 +23,9 @@ public class ProductServiceClient implements ProductServicePort {
 
     public ProductServiceClient(
             WebClient.Builder webClientBuilder,
-            @Value("${services.product.url}") String productServiceUrl) {
-        this.webClient = webClientBuilder.baseUrl(productServiceUrl).build();
+            ServiceProperties serviceProperties) {
+        this.webClient = webClientBuilder.baseUrl(Objects.requireNonNull(serviceProperties.getProduct().getUrl()))
+                .build();
     }
 
     @Override

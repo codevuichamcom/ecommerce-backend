@@ -1,11 +1,13 @@
 package com.ecommerce.order.infrastructure.client;
 
 import com.ecommerce.order.application.port.out.InventoryServicePort;
+import com.ecommerce.order.infrastructure.config.ServiceProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.Objects;
 
 /**
  * HTTP client for Inventory service using WebClient.
@@ -19,8 +21,9 @@ public class InventoryServiceClient implements InventoryServicePort {
 
     public InventoryServiceClient(
             WebClient.Builder webClientBuilder,
-            @Value("${services.inventory.url}") String inventoryServiceUrl) {
-        this.webClient = webClientBuilder.baseUrl(inventoryServiceUrl).build();
+            ServiceProperties serviceProperties) {
+        this.webClient = webClientBuilder.baseUrl(Objects.requireNonNull(serviceProperties.getInventory().getUrl()))
+                .build();
     }
 
     @Override

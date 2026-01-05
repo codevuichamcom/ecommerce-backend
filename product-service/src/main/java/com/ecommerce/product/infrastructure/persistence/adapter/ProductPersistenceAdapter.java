@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Currency;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -26,6 +27,7 @@ public class ProductPersistenceAdapter implements ProductRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Product save(Product product) {
         var entity = toJpaEntity(product);
         var savedEntity = jpaRepository.save(entity);
@@ -34,7 +36,7 @@ public class ProductPersistenceAdapter implements ProductRepository {
 
     @Override
     public Optional<Product> findById(ProductId id) {
-        return jpaRepository.findById(id.value())
+        return jpaRepository.findById(Objects.requireNonNull(id.value()))
                 .map(this::toDomainEntity);
     }
 
@@ -58,7 +60,7 @@ public class ProductPersistenceAdapter implements ProductRepository {
 
     @Override
     public void delete(ProductId id) {
-        jpaRepository.deleteById(id.value());
+        jpaRepository.deleteById(Objects.requireNonNull(id.value()));
     }
 
     // Mapping methods

@@ -8,6 +8,7 @@ import com.ecommerce.order.infrastructure.persistence.repository.OrderJpaReposit
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -23,6 +24,7 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Order save(Order order) {
         var entity = toJpaEntity(order);
         var saved = jpaRepository.save(entity);
@@ -31,7 +33,7 @@ public class OrderPersistenceAdapter implements OrderRepository {
 
     @Override
     public Optional<Order> findById(OrderId id) {
-        return jpaRepository.findByIdWithItems(id.value())
+        return jpaRepository.findByIdWithItems(Objects.requireNonNull(id.value()))
                 .map(this::toDomainEntity);
     }
 

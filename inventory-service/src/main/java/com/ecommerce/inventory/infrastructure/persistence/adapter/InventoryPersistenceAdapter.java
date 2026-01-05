@@ -5,8 +5,10 @@ import com.ecommerce.inventory.domain.model.InventoryId;
 import com.ecommerce.inventory.domain.repository.InventoryRepository;
 import com.ecommerce.inventory.infrastructure.persistence.entity.InventoryJpaEntity;
 import com.ecommerce.inventory.infrastructure.persistence.repository.InventoryJpaRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -22,15 +24,15 @@ public class InventoryPersistenceAdapter implements InventoryRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Inventory save(Inventory inventory) {
-        var entity = toJpaEntity(inventory);
-        var saved = jpaRepository.save(entity);
-        return toDomainEntity(saved);
+        InventoryJpaEntity entity = toJpaEntity(inventory);
+        return toDomainEntity(jpaRepository.save(entity));
     }
 
     @Override
     public Optional<Inventory> findById(InventoryId id) {
-        return jpaRepository.findById(id.value())
+        return jpaRepository.findById(Objects.requireNonNull(id.value()))
                 .map(this::toDomainEntity);
     }
 
@@ -57,7 +59,7 @@ public class InventoryPersistenceAdapter implements InventoryRepository {
         return entity;
     }
 
-    private Inventory toDomainEntity(InventoryJpaEntity entity) {
+    private Inventory toDomainEntity(@NonNull InventoryJpaEntity entity) {
         return Inventory.reconstitute(
                 new InventoryId(entity.getId()),
                 entity.getProductId(),
