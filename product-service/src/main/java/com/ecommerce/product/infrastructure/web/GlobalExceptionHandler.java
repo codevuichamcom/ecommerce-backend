@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -34,9 +33,9 @@ public class GlobalExceptionHandler {
 
         // Java 21 pattern matching with sealed classes
         HttpStatus status = switch (ex) {
-            case NotFoundException _ -> HttpStatus.NOT_FOUND;
-            case ConflictException _ -> HttpStatus.CONFLICT;
-            case ValidationException _ -> HttpStatus.BAD_REQUEST;
+            case NotFoundException e -> HttpStatus.NOT_FOUND;
+            case ConflictException e -> HttpStatus.CONFLICT;
+            case ValidationException e -> HttpStatus.BAD_REQUEST;
         };
 
         return ResponseEntity

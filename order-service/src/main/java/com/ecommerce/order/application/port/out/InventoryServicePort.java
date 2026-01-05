@@ -1,7 +1,5 @@
 package com.ecommerce.order.application.port.out;
 
-import java.math.BigDecimal;
-
 /**
  * Port for communicating with Inventory service.
  */

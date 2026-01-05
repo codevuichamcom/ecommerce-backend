@@ -95,7 +95,7 @@ public class OrderService {
 
                 // Pattern matching on reservation result
                 switch (result) {
-                    case ReservationResult.Success _ ->
+                    case ReservationResult.Success r ->
                         reservedItems.add(new ReservedItem(item.getProductId(), item.getQuantity()));
 
                     case ReservationResult.InsufficientStock is -> {

@@ -52,12 +52,12 @@ public sealed interface OrderStatus {
      */
     default String toDbValue() {
         return switch (this) {
-            case Pending _ -> "PENDING";
-            case Confirmed _ -> "CONFIRMED";
-            case Paid _ -> "PAID";
-            case Shipped _ -> "SHIPPED";
-            case Delivered _ -> "DELIVERED";
-            case Cancelled _ -> "CANCELLED";
+            case Pending s -> "PENDING";
+            case Confirmed s -> "CONFIRMED";
+            case Paid s -> "PAID";
+            case Shipped s -> "SHIPPED";
+            case Delivered s -> "DELIVERED";
+            case Cancelled s -> "CANCELLED";
         };
     }
 
@@ -81,8 +81,12 @@ public sealed interface OrderStatus {
      */
     default boolean canBeCancelled() {
         return switch (this) {
-            case Pending _,Confirmed _ -> true;
-            case Paid _,Shipped _,Delivered _,Cancelled _ -> false;
+            case Pending s -> true;
+            case Confirmed s -> true;
+            case Paid s -> false;
+            case Shipped s -> false;
+            case Delivered s -> false;
+            case Cancelled s -> false;
         };
     }
 
@@ -91,7 +95,8 @@ public sealed interface OrderStatus {
      */
     default boolean isTerminal() {
         return switch (this) {
-            case Delivered _,Cancelled _ -> true;
+            case Delivered s -> true;
+            case Cancelled s -> true;
             default -> false;
         };
     }

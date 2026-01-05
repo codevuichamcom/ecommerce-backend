@@ -28,9 +28,9 @@ public class GlobalExceptionHandler {
         log.warn("Business exception: {}", ex.getMessage());
 
         HttpStatus status = switch (ex) {
-            case NotFoundException _ -> HttpStatus.NOT_FOUND;
-            case ConflictException _ -> HttpStatus.CONFLICT;
-            case ValidationException _ -> HttpStatus.BAD_REQUEST;
+            case NotFoundException e -> HttpStatus.NOT_FOUND;
+            case ConflictException e -> HttpStatus.CONFLICT;
+            case ValidationException e -> HttpStatus.BAD_REQUEST;
         };
 
         return ResponseEntity

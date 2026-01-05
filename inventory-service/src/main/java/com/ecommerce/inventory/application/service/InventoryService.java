@@ -4,7 +4,6 @@ import com.ecommerce.common.exception.ConflictException;
 import com.ecommerce.common.exception.NotFoundException;
 import com.ecommerce.inventory.application.dto.*;
 import com.ecommerce.inventory.domain.model.Inventory;
-import com.ecommerce.inventory.domain.model.InventoryId;
 import com.ecommerce.inventory.domain.model.StockOperationResult;
 import com.ecommerce.inventory.domain.repository.InventoryRepository;
 import org.slf4j.Logger;

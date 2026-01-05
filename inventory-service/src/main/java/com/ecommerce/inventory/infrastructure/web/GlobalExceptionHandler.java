@@ -22,62 +22,63 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException ex) {
-        log.warn("Business exception: {}", ex.getMessage());
+        @ExceptionHandler(BusinessException.class)
+        public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException ex) {
+                log.warn("Business exception: {}", ex.getMessage());
 
-        HttpStatus status = switch (ex) {
-            case NotFoundException _ -> HttpStatus.NOT_FOUND;
-            case ConflictException _ -> HttpStatus.CONFLICT;
-            case ValidationException _ -> HttpStatus.BAD_REQUEST;
-        };
+                HttpStatus status = switch (ex) {
+                        case NotFoundException e -> HttpStatus.NOT_FOUND;
+                        case ConflictException e -> HttpStatus.CONFLICT;
+                        case ValidationException e -> HttpStatus.BAD_REQUEST;
+                };
 
-        return ResponseEntity
-                .status(status)
-                .body(ApiResponse.error(ex.getErrorCode(), ex.getMessage()));
-    }
+                return ResponseEntity
+                                .status(status)
+                                .body(ApiResponse.error(ex.getErrorCode(), ex.getMessage()));
+        }
 
-    /**
-     * Handle optimistic locking failures that weren't retried.
-     */
-    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockException(
-            ObjectOptimisticLockingFailureException ex) {
-        log.warn("Optimistic lock failure after retries: {}", ex.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error("CONCURRENT_MODIFICATION",
-                        "Resource was modified by another request. Please retry."));
-    }
+        /**
+         * Handle optimistic locking failures that weren't retried.
+         */
+        @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+        public ResponseEntity<ApiResponse<Void>> handleOptimisticLockException(
+                        ObjectOptimisticLockingFailureException ex) {
+                log.warn("Optimistic lock failure after retries: {}", ex.getMessage());
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(ApiResponse.error("CONCURRENT_MODIFICATION",
+                                                "Resource was modified by another request. Please retry."));
+        }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidationException(
-            MethodArgumentNotValidException ex) {
-        var fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.groupingBy(
-                        error -> error.getField(),
-                        Collectors.mapping(error -> error.getDefaultMessage(), Collectors.toList())));
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ApiResponse<Void>> handleValidationException(
+                        MethodArgumentNotValidException ex) {
+                var fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                                .collect(Collectors.groupingBy(
+                                                error -> error.getField(),
+                                                Collectors.mapping(error -> error.getDefaultMessage(),
+                                                                Collectors.toList())));
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("VALIDATION_ERROR", "Validation failed", fieldErrors));
-    }
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.error("VALIDATION_ERROR", "Validation failed", fieldErrors));
+        }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
-        log.warn("Illegal argument: {}", ex.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("INVALID_ARGUMENT", ex.getMessage()));
-    }
+        @ExceptionHandler(IllegalArgumentException.class)
+        public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
+                log.warn("Illegal argument: {}", ex.getMessage());
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.error("INVALID_ARGUMENT", ex.getMessage()));
+        }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
-        log.error("Unexpected error", ex);
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("INTERNAL_ERROR", "An unexpected error occurred"));
-    }
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
+                log.error("Unexpected error", ex);
+                return ResponseEntity
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(ApiResponse.error("INTERNAL_ERROR", "An unexpected error occurred"));
+        }
 }
