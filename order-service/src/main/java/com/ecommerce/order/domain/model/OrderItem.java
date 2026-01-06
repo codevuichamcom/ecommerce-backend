@@ -1,6 +1,7 @@
 package com.ecommerce.order.domain.model;
 
-import java.util.Objects;
+import com.ecommerce.common.exception.ErrorCode;
+import com.ecommerce.common.exception.ValidationException;
 
 /**
  * Order item value object (part of Order aggregate).
@@ -12,11 +13,17 @@ public record OrderItem(
         Money unitPrice,
         Money subtotal) {
     public OrderItem {
-        Objects.requireNonNull(productId, "Product ID must not be null");
-        Objects.requireNonNull(productName, "Product name must not be null");
-        Objects.requireNonNull(unitPrice, "Unit price must not be null");
+        if (productId == null) {
+            throw new ValidationException(ErrorCode.NOT_NULL, "Product ID");
+        }
+        if (productName == null) {
+            throw new ValidationException(ErrorCode.NOT_NULL, "Product name");
+        }
+        if (unitPrice == null) {
+            throw new ValidationException(ErrorCode.NOT_NULL, "Unit price");
+        }
         if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+            throw new ValidationException(ErrorCode.INVALID_VALUE, "Quantity", "positive");
         }
     }
 

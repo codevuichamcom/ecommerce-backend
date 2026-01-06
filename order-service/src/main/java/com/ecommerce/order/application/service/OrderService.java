@@ -1,5 +1,6 @@
 package com.ecommerce.order.application.service;
 
+import com.ecommerce.common.exception.ErrorCode;
 import com.ecommerce.common.exception.ConflictException;
 import com.ecommerce.common.exception.NotFoundException;
 import com.ecommerce.common.exception.ValidationException;
@@ -62,9 +63,7 @@ public class OrderService {
             var product = productService.getProduct(itemRequest.productId());
 
             if (!product.available()) {
-                throw new ValidationException(
-                        "productId",
-                        String.format("Product '%s' is not available", product.name()));
+                throw new ValidationException(ErrorCode.PRODUCT_NOT_AVAILABLE, product.name());
             }
 
             orderItems.add(OrderItem.create(
@@ -93,23 +92,19 @@ public class OrderService {
                         item.quantity(),
                         orderId);
 
-
                 // Pattern matching on reservation result
                 switch (result) {
                     case ReservationResult.Success r ->
                         reservedItems.add(new ReservedItem(item.productId(), item.quantity()));
 
-
                     case ReservationResult.InsufficientStock is -> {
                         throw new ConflictException(
-                                "INSUFFICIENT_STOCK",
-                                String.format("Insufficient stock for product %s: requested %d, available %d",
-                                        item.productId(), is.requested(), is.available()));
+                                ErrorCode.INSUFFICIENT_STOCK,
+                                item.productId(), is.requested(), is.available());
                     }
 
-
                     case ReservationResult.ServiceUnavailable su -> {
-                        throw new ConflictException("SERVICE_UNAVAILABLE", su.message());
+                        throw new ConflictException(ErrorCode.INVENTORY_SERVICE_UNAVAILABLE, su.message());
                     }
                 }
             }

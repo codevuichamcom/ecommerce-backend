@@ -12,18 +12,24 @@ public final class ValidationException extends BusinessException {
     private final Map<String, List<String>> fieldErrors;
 
     public ValidationException(String message) {
-        super("VALIDATION_ERROR", message);
+        super(ErrorCode.VALIDATION_ERROR.getCode(), message);
         this.fieldErrors = Collections.emptyMap();
     }
 
     public ValidationException(String message, Map<String, List<String>> fieldErrors) {
-        super("VALIDATION_ERROR", message);
+        super(ErrorCode.VALIDATION_ERROR.getCode(), message);
         this.fieldErrors = fieldErrors != null ? Map.copyOf(fieldErrors) : Collections.emptyMap();
     }
 
     public ValidationException(String field, String error) {
-        super("VALIDATION_ERROR", String.format("Validation failed for field '%s': %s", field, error));
+        super(ErrorCode.VALIDATION_ERROR.getCode(),
+                String.format("Validation failed for field '%s': %s", field, error));
         this.fieldErrors = Map.of(field, List.of(error));
+    }
+
+    public ValidationException(ErrorCode errorCode, Object... args) {
+        super(errorCode, args);
+        this.fieldErrors = Collections.emptyMap();
     }
 
     public Map<String, List<String>> getFieldErrors() {

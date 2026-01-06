@@ -18,6 +18,16 @@ public abstract sealed class BusinessException extends RuntimeException
 
     private final String errorCode;
 
+    protected BusinessException(ErrorCode errorCode, Object... args) {
+        super(errorCode.formatMessage(args));
+        this.errorCode = errorCode.getCode();
+    }
+
+    protected BusinessException(ErrorCode errorCode, Throwable cause, Object... args) {
+        super(errorCode.formatMessage(args), cause);
+        this.errorCode = errorCode.getCode();
+    }
+
     protected BusinessException(String errorCode, String message) {
         super(message);
         this.errorCode = errorCode;

@@ -5,6 +5,8 @@ import com.ecommerce.common.util.IdGenerator;
 import com.ecommerce.order.domain.event.OrderCancelled;
 import com.ecommerce.order.domain.event.OrderConfirmed;
 import com.ecommerce.order.domain.event.OrderCreated;
+import com.ecommerce.common.exception.ErrorCode;
+import com.ecommerce.common.exception.ValidationException;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -51,7 +53,7 @@ public class Order extends AggregateRoot<OrderId> {
         Objects.requireNonNull(items, "Items must not be null");
 
         if (items.isEmpty()) {
-            throw new IllegalArgumentException("Order must have at least one item");
+            throw new ValidationException(ErrorCode.ORDER_ITEMS_EMPTY);
         }
 
         var orderId = new OrderId(IdGenerator.generate("ord"));
@@ -94,7 +96,7 @@ public class Order extends AggregateRoot<OrderId> {
      */
     public void confirm() {
         if (!(status instanceof OrderStatus.Pending)) {
-            throw new IllegalStateException("Can only confirm pending orders");
+            throw new IllegalStateException(ErrorCode.ORDER_INVALID_CONFIRMATION.formatMessage());
         }
 
         this.status = OrderStatus.Confirmed.INSTANCE;
@@ -112,8 +114,7 @@ public class Order extends AggregateRoot<OrderId> {
      */
     public void cancel(String reason) {
         if (!status.canBeCancelled()) {
-            throw new IllegalStateException(
-                    String.format("Cannot cancel order in status: %s", status.toDbValue()));
+            throw new IllegalStateException(ErrorCode.ORDER_CANNOT_BE_CANCELLED.formatMessage(status.toDbValue()));
         }
 
         this.status = new OrderStatus.Cancelled(reason);
@@ -132,7 +133,7 @@ public class Order extends AggregateRoot<OrderId> {
      */
     public void markAsPaid() {
         if (!(status instanceof OrderStatus.Confirmed)) {
-            throw new IllegalStateException("Can only mark confirmed orders as paid");
+            throw new IllegalStateException(ErrorCode.ORDER_INVALID_PAID_STATUS.formatMessage());
         }
 
         this.status = OrderStatus.Paid.INSTANCE;
@@ -144,7 +145,6 @@ public class Order extends AggregateRoot<OrderId> {
                 .map(OrderItem::subtotal)
                 .reduce(Money.zero(), Money::add);
     }
-
 
     // Custom business getters
     public List<OrderItem> getItems() {

@@ -1,8 +1,8 @@
 package com.ecommerce.order.domain.model;
 
+import com.ecommerce.common.exception.ErrorCode;
+import com.ecommerce.common.exception.ValidationException;
 import com.ecommerce.common.domain.ValueObject;
-
-import java.util.Objects;
 
 /**
  * Customer identifier value object.
@@ -10,9 +10,11 @@ import java.util.Objects;
 public record CustomerId(String value) implements ValueObject {
 
     public CustomerId {
-        Objects.requireNonNull(value, "Customer ID must not be null");
+        if (value == null) {
+            throw new ValidationException(ErrorCode.NOT_NULL, "Customer ID");
+        }
         if (value.isBlank()) {
-            throw new IllegalArgumentException("Customer ID must not be blank");
+            throw new ValidationException(ErrorCode.NOT_BLANK, "Customer ID");
         }
     }
 

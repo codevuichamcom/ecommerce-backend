@@ -1,8 +1,8 @@
 package com.ecommerce.order.domain.model;
 
+import com.ecommerce.common.exception.ErrorCode;
+import com.ecommerce.common.exception.ValidationException;
 import com.ecommerce.common.domain.ValueObject;
-
-import java.util.Objects;
 
 /**
  * Order identifier value object.
@@ -10,9 +10,11 @@ import java.util.Objects;
 public record OrderId(String value) implements ValueObject {
 
     public OrderId {
-        Objects.requireNonNull(value, "Order ID must not be null");
+        if (value == null) {
+            throw new ValidationException(ErrorCode.NOT_NULL, "Order ID");
+        }
         if (value.isBlank()) {
-            throw new IllegalArgumentException("Order ID must not be blank");
+            throw new ValidationException(ErrorCode.NOT_BLANK, "Order ID");
         }
     }
 

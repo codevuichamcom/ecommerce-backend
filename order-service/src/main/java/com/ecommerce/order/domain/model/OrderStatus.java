@@ -1,5 +1,7 @@
 package com.ecommerce.order.domain.model;
 
+import com.ecommerce.common.exception.ErrorCode;
+
 /**
  * Order status using Java 21 sealed interface.
  * Enables exhaustive pattern matching in business logic.
@@ -72,7 +74,7 @@ public sealed interface OrderStatus {
             case "SHIPPED" -> Shipped.INSTANCE;
             case "DELIVERED" -> Delivered.INSTANCE;
             case "CANCELLED" -> new Cancelled(cancelReason);
-            default -> throw new IllegalArgumentException("Unknown order status: " + value);
+            default -> throw new IllegalArgumentException(ErrorCode.INVALID_VALUE.formatMessage("order status", value));
         };
     }
 

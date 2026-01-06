@@ -1,10 +1,11 @@
 package com.ecommerce.order.domain.model;
 
+import com.ecommerce.common.exception.ErrorCode;
+import com.ecommerce.common.exception.ValidationException;
 import com.ecommerce.common.domain.ValueObject;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Objects;
 
 /**
  * Money value object for orders.
@@ -14,10 +15,14 @@ public record Money(BigDecimal amount, String currency) implements ValueObject {
     public static final String DEFAULT_CURRENCY = "USD";
 
     public Money {
-        Objects.requireNonNull(amount, "Amount must not be null");
-        Objects.requireNonNull(currency, "Currency must not be null");
+        if (amount == null) {
+            throw new ValidationException(ErrorCode.NOT_NULL, "Amount");
+        }
+        if (currency == null) {
+            throw new ValidationException(ErrorCode.NOT_NULL, "Currency");
+        }
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount must be non-negative");
+            throw new ValidationException(ErrorCode.NEGATIVE_AMOUNT);
         }
         amount = amount.setScale(2, RoundingMode.HALF_UP);
     }
@@ -36,7 +41,7 @@ public record Money(BigDecimal amount, String currency) implements ValueObject {
 
     public Money add(Money other) {
         if (!this.currency.equals(other.currency)) {
-            throw new IllegalArgumentException("Currency mismatch");
+            throw new ValidationException(ErrorCode.CURRENCY_MISMATCH);
         }
         return new Money(this.amount.add(other.amount), this.currency);
     }

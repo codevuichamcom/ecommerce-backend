@@ -9,15 +9,21 @@ public final class NotFoundException extends BusinessException {
     private final String resourceId;
 
     public NotFoundException(String resourceType, String resourceId) {
-        super("NOT_FOUND", String.format("%s with id '%s' not found", resourceType, resourceId));
+        super(ErrorCode.NOT_FOUND, resourceType, resourceId);
         this.resourceType = resourceType;
         this.resourceId = resourceId;
     }
 
     public NotFoundException(String resourceType, String resourceId, Throwable cause) {
-        super("NOT_FOUND", String.format("%s with id '%s' not found", resourceType, resourceId), cause);
+        super(ErrorCode.NOT_FOUND, cause, resourceType, resourceId);
         this.resourceType = resourceType;
         this.resourceId = resourceId;
+    }
+
+    public NotFoundException(ErrorCode errorCode, Object... args) {
+        super(errorCode, args);
+        this.resourceType = "Unknown";
+        this.resourceId = "Unknown";
     }
 
     public String getResourceType() {

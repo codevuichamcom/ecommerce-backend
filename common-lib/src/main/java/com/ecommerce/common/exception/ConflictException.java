@@ -9,13 +9,18 @@ public final class ConflictException extends BusinessException {
     private final String conflictType;
 
     public ConflictException(String conflictType, String message) {
-        super("CONFLICT", message);
+        super(ErrorCode.CONFLICT.getCode(), message);
         this.conflictType = conflictType;
     }
 
     public ConflictException(String conflictType, String message, Throwable cause) {
-        super("CONFLICT", message, cause);
+        super(ErrorCode.CONFLICT.getCode(), message, cause);
         this.conflictType = conflictType;
+    }
+
+    public ConflictException(ErrorCode errorCode, Object... args) {
+        super(errorCode, args);
+        this.conflictType = errorCode.name();
     }
 
     /**
