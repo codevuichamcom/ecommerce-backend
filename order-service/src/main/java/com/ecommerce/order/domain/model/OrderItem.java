@@ -1,6 +1,5 @@
 package com.ecommerce.order.domain.model;
 
-import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -26,29 +25,7 @@ public record OrderItem(
     }
 
     public static OrderItem reconstitute(String productId, String productName,
-            int quantity, BigDecimal unitPrice, String currency) {
-        Money price = new Money(unitPrice, currency);
-        return new OrderItem(productId, productName, quantity, price, price.multiply(quantity));
-    }
-
-    // Getters for compatibility with old code if needed (records use fieldName())
-    public String getProductId() {
-        return productId;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public Money getUnitPrice() {
-        return unitPrice;
-    }
-
-    public Money getSubtotal() {
-        return subtotal;
+            int quantity, Money unitPrice, Money subtotal) {
+        return new OrderItem(productId, productName, quantity, unitPrice, subtotal);
     }
 }

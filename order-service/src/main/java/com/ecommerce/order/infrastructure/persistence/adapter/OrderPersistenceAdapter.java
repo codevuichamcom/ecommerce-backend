@@ -74,12 +74,13 @@ public class OrderPersistenceAdapter implements OrderRepository {
         // Map items
         for (var item : order.getItems()) {
             var itemEntity = new OrderItemJpaEntity();
-            itemEntity.setProductId(item.getProductId());
-            itemEntity.setProductName(item.getProductName());
-            itemEntity.setQuantity(item.getQuantity());
-            itemEntity.setUnitPrice(item.getUnitPrice().amount());
-            itemEntity.setCurrency(item.getUnitPrice().currency());
-            itemEntity.setSubtotal(item.getSubtotal().amount());
+            itemEntity.setProductId(item.productId());
+            itemEntity.setProductName(item.productName());
+            itemEntity.setQuantity(item.quantity());
+            itemEntity.setUnitPrice(item.unitPrice().amount());
+            itemEntity.setCurrency(item.unitPrice().currency());
+            itemEntity.setSubtotal(item.subtotal().amount());
+
             entity.addItem(itemEntity);
         }
 
@@ -92,9 +93,10 @@ public class OrderPersistenceAdapter implements OrderRepository {
                         itemEntity.getProductId(),
                         itemEntity.getProductName(),
                         itemEntity.getQuantity(),
-                        itemEntity.getUnitPrice(),
-                        itemEntity.getCurrency()))
+                        new Money(itemEntity.getUnitPrice(), itemEntity.getCurrency()),
+                        new Money(itemEntity.getSubtotal(), itemEntity.getCurrency())))
                 .toList();
+
 
         var status = OrderStatus.fromDbValue(entity.getStatus(), entity.getCancelReason());
 

@@ -141,9 +141,10 @@ public class Order extends AggregateRoot<OrderId> {
 
     private static Money calculateTotal(List<OrderItem> items) {
         return items.stream()
-                .map(OrderItem::getSubtotal)
+                .map(OrderItem::subtotal)
                 .reduce(Money.zero(), Money::add);
     }
+
 
     // Custom business getters
     public List<OrderItem> getItems() {
@@ -151,6 +152,7 @@ public class Order extends AggregateRoot<OrderId> {
     }
 
     public int getTotalItems() {
-        return items.stream().mapToInt(OrderItem::getQuantity).sum();
+        return items.stream().mapToInt(OrderItem::quantity).sum();
     }
+
 }

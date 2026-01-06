@@ -44,11 +44,12 @@ public record OrderResponse(
             BigDecimal subtotal) {
         public static OrderItemResponse from(OrderItem item) {
             return new OrderItemResponse(
-                    item.getProductId(),
-                    item.getProductName(),
-                    item.getQuantity(),
-                    item.getUnitPrice().amount(),
-                    item.getSubtotal().amount());
+                    item.productId(),
+                    item.productName(),
+                    item.quantity(),
+                    item.unitPrice().amount(),
+                    item.subtotal().amount());
         }
+
     }
 }

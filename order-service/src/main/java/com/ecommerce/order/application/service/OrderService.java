@@ -89,21 +89,24 @@ public class OrderService {
         try {
             for (var item : orderItems) {
                 var result = inventoryService.reserveStock(
-                        item.getProductId(),
-                        item.getQuantity(),
+                        item.productId(),
+                        item.quantity(),
                         orderId);
+
 
                 // Pattern matching on reservation result
                 switch (result) {
                     case ReservationResult.Success r ->
-                        reservedItems.add(new ReservedItem(item.getProductId(), item.getQuantity()));
+                        reservedItems.add(new ReservedItem(item.productId(), item.quantity()));
+
 
                     case ReservationResult.InsufficientStock is -> {
                         throw new ConflictException(
                                 "INSUFFICIENT_STOCK",
                                 String.format("Insufficient stock for product %s: requested %d, available %d",
-                                        item.getProductId(), is.requested(), is.available()));
+                                        item.productId(), is.requested(), is.available()));
                     }
+
 
                     case ReservationResult.ServiceUnavailable su -> {
                         throw new ConflictException("SERVICE_UNAVAILABLE", su.message());
@@ -157,12 +160,14 @@ public class OrderService {
             for (var item : order.getItems()) {
                 try {
                     inventoryService.releaseStock(
-                            item.getProductId(),
-                            item.getQuantity(),
+                            item.productId(),
+                            item.quantity(),
                             id);
+
                 } catch (Exception e) {
                     log.warn("Failed to release inventory for product {}: {}",
-                            item.getProductId(), e.getMessage());
+                            item.productId(), e.getMessage());
+
                     // Continue cancellation even if release fails
                 }
             }
