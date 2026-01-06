@@ -3,14 +3,18 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     java
+    jacoco
     id("org.springframework.boot") version "3.5.9" apply false
     id("io.spring.dependency-management") version "1.1.4" apply false
 }
+
 
 // Common configuration for all subprojects
 subprojects {
     apply(plugin = "java")
     apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "jacoco")
+
     
     group = "com.ecommerce"
     version = "1.0.0-SNAPSHOT"
@@ -61,8 +65,46 @@ subprojects {
             events(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
             exceptionFormat = TestExceptionFormat.FULL
         }
+        finalizedBy("jacocoTestReport") // Use string name for stability in Kotlin DSL
+    }
+
+    configure<org.gradle.testing.jacoco.plugins.JacocoPluginExtension> {
+        toolVersion = "0.8.12"
+    }
+
+    tasks.withType<org.gradle.testing.jacoco.tasks.JacocoReport> {
+        dependsOn(tasks.withType<Test>())
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
+        classDirectories.setFrom(
+            files(classDirectories.files.map {
+                fileTree(it) {
+                    exclude(
+                        "**/dto/**",
+                        "**/entity/**",
+                        "**/config/**",
+                        "**/*Application*",
+                        "**/common/exception/**"
+                    )
+                }
+            })
+        )
+    }
+
+    tasks.withType<org.gradle.testing.jacoco.tasks.JacocoCoverageVerification> {
+        violationRules {
+            rule {
+                limit {
+                    minimum = "0.70".toBigDecimal()
+                }
+            }
+        }
     }
 }
+
+
 
 // Task to run all services
 tasks.register("bootRunAll") {
@@ -74,3 +116,31 @@ tasks.register("bootRunAll") {
         ":order-service:bootRun"
     )
 }
+
+// Aggregate JaCoCo report for the whole project
+tasks.register<org.gradle.testing.jacoco.tasks.JacocoReport>("jacocoRootReport") {
+    group = "verification"
+    description = "Generates an aggregate report from all subprojects"
+
+    val subprojects = subprojects
+    dependsOn(subprojects.map { it.tasks.withType<Test>() })
+    dependsOn(subprojects.map { it.tasks.withType<org.gradle.testing.jacoco.tasks.JacocoReport>() })
+
+    additionalSourceDirs.setFrom(subprojects.map { it.sourceSets.main.get().allSource.srcDirs })
+    sourceDirectories.setFrom(subprojects.map { it.sourceSets.main.get().allSource.srcDirs })
+    classDirectories.setFrom(subprojects.map { 
+        it.tasks.withType<org.gradle.testing.jacoco.tasks.JacocoReport>().map { report -> report.classDirectories }
+    })
+    executionData.setFrom(subprojects.map { 
+        it.fileTree(it.buildDir).include("jacoco/*.exec")
+    })
+
+    reports {
+        xml.required.set(true)
+        xml.outputLocation.set(file("${buildDir}/reports/jacoco/aggregate/report.xml"))
+        html.required.set(true)
+        html.outputLocation.set(file("${buildDir}/reports/jacoco/aggregate/html"))
+    }
+}
+
+

@@ -31,136 +31,185 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
-    @Mock
-    private OrderRepository orderRepository;
+        @Mock
+        private OrderRepository orderRepository;
 
-    @Mock
-    private ProductServicePort productService;
+        @Mock
+        private ProductServicePort productService;
 
-    @Mock
-    private InventoryServicePort inventoryService;
+        @Mock
+        private InventoryServicePort inventoryService;
 
-    @InjectMocks
-    private OrderService orderService;
+        @InjectMocks
+        private OrderService orderService;
 
-    private CreateOrderCommand createCommand;
-    private ProductDetails productDetails;
-    private String customerId = "cust_123";
-    private String productId = "prod_123";
-    private String idempotencyKey = "key_123";
+        private CreateOrderCommand createCommand;
+        private ProductDetails productDetails;
+        private String customerId = "cust_123";
+        private String productId = "prod_123";
+        private String idempotencyKey = "key_123";
 
-    @BeforeEach
-    void setUp() {
-        createCommand = new CreateOrderCommand(
-                customerId,
-                List.of(new OrderItemRequest(productId, 2)));
+        @BeforeEach
+        void setUp() {
+                createCommand = new CreateOrderCommand(
+                                customerId,
+                                List.of(new OrderItemRequest(productId, 2)));
 
-        productDetails = new ProductDetails(
-                productId,
-                "Test Product",
-                new BigDecimal("50.00"),
-                "USD",
-                true);
-    }
+                productDetails = new ProductDetails(
+                                productId,
+                                "Test Product",
+                                new BigDecimal("50.00"),
+                                "USD",
+                                true);
+        }
 
-    @Test
-    void createOrder_ShouldReturnExistingOrder_WhenIdempotencyKeyMatches() {
-        // Given
-        Order existingOrder = createTestOrder();
-        when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.of(existingOrder));
+        @Test
+        void createOrder_ShouldReturnExistingOrder_WhenIdempotencyKeyMatches() {
+                // Given
+                Order existingOrder = createTestOrder();
+                when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.of(existingOrder));
 
-        // When
-        OrderResponse response = orderService.createOrder(createCommand, idempotencyKey);
+                // When
+                OrderResponse response = orderService.createOrder(createCommand, idempotencyKey);
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.id()).isEqualTo(existingOrder.getId().value());
-        verify(orderRepository, never()).save(any());
-    }
+                // Then
+                assertThat(response).isNotNull();
+                assertThat(response.id()).isEqualTo(existingOrder.getId().value());
+                verify(orderRepository, never()).save(any());
+        }
 
-    @Test
-    void createOrder_ShouldCreateAndConfirmOrder_WhenSuccessful() {
-        // Given
-        when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
-        when(productService.getProduct(productId)).thenReturn(productDetails);
+        @Test
+        void createOrder_ShouldCreateAndConfirmOrder_WhenSuccessful() {
+                // Given
+                when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
+                when(productService.getProduct(productId)).thenReturn(productDetails);
 
-        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+                when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        when(inventoryService.reserveStock(anyString(), anyInt(), anyString()))
-                .thenReturn(new ReservationResult.Success(10, 2));
+                when(inventoryService.reserveStock(anyString(), anyInt(), anyString()))
+                                .thenReturn(new ReservationResult.Success(10, 2));
 
-        // When
-        OrderResponse response = orderService.createOrder(createCommand, idempotencyKey);
+                // When
+                OrderResponse response = orderService.createOrder(createCommand, idempotencyKey);
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.status()).isEqualTo("CONFIRMED");
-        verify(orderRepository, atLeastOnce()).save(any(Order.class));
-    }
+                // Then
+                assertThat(response).isNotNull();
+                assertThat(response.status()).isEqualTo("CONFIRMED");
+                verify(orderRepository, atLeastOnce()).save(any(Order.class));
+        }
 
-    @Test
-    void createOrder_ShouldRollbackAndThrow_WhenInsufficientStock() {
-        // Given
-        String productId2 = "prod_456";
-        createCommand = new CreateOrderCommand(
-                customerId,
-                List.of(
-                        new OrderItemRequest(productId, 2),
-                        new OrderItemRequest(productId2, 1)));
+        @Test
+        void createOrder_ShouldRollbackAndThrow_WhenInsufficientStock() {
+                // Given
+                String productId2 = "prod_456";
+                createCommand = new CreateOrderCommand(
+                                customerId,
+                                List.of(
+                                                new OrderItemRequest(productId, 2),
+                                                new OrderItemRequest(productId2, 1)));
 
-        when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
-        when(productService.getProduct(productId)).thenReturn(productDetails);
-        when(productService.getProduct(productId2))
-                .thenReturn(new ProductDetails(productId2, "Product 2", BigDecimal.TEN, "USD", true));
+                when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
+                when(productService.getProduct(productId)).thenReturn(productDetails);
+                when(productService.getProduct(productId2))
+                                .thenReturn(new ProductDetails(productId2, "Product 2", BigDecimal.TEN, "USD", true));
 
-        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+                when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // First succeeds, second fails
-        when(inventoryService.reserveStock(eq(productId), eq(2), anyString()))
-                .thenReturn(new ReservationResult.Success(10, 2));
-        when(inventoryService.reserveStock(eq(productId2), eq(1), anyString()))
-                .thenReturn(new ReservationResult.InsufficientStock(1, 0));
+                // First succeeds, second fails
+                when(inventoryService.reserveStock(eq(productId), eq(2), anyString()))
+                                .thenReturn(new ReservationResult.Success(10, 2));
+                when(inventoryService.reserveStock(eq(productId2), eq(1), anyString()))
+                                .thenReturn(new ReservationResult.InsufficientStock(1, 0));
 
-        // When & Then
-        assertThatThrownBy(() -> orderService.createOrder(createCommand, idempotencyKey))
-                .isInstanceOf(ConflictException.class);
+                // When & Then
+                assertThatThrownBy(() -> orderService.createOrder(createCommand, idempotencyKey))
+                                .isInstanceOf(ConflictException.class);
 
-        // Should rollback the first one
-        verify(inventoryService).releaseStock(eq(productId), eq(2), anyString());
-    }
+                // Should rollback the first one
+                verify(inventoryService).releaseStock(eq(productId), eq(2), anyString());
+        }
 
-    @Test
-    void getOrder_ShouldReturnOrder_WhenExists() {
-        // Given
-        Order order = createTestOrder();
-        when(orderRepository.findById(any(OrderId.class))).thenReturn(Optional.of(order));
+        @Test
+        void createOrder_ShouldThrowValidationException_WhenProductInactive() {
+                // Given
+                productDetails = new ProductDetails(productId, "Inactive", BigDecimal.TEN, "USD", false);
+                when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
+                when(productService.getProduct(productId)).thenReturn(productDetails);
 
-        // When
-        OrderResponse response = orderService.getOrder("order_123");
+                // When & Then
+                assertThatThrownBy(() -> orderService.createOrder(createCommand, idempotencyKey))
+                                .isInstanceOf(com.ecommerce.common.exception.ValidationException.class);
+        }
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.id()).isEqualTo(order.getId().value());
-    }
+        @Test
+        void createOrder_ShouldRollback_WhenInventoryServiceUnavailable() {
+                // Given
+                when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
+                when(productService.getProduct(productId)).thenReturn(productDetails);
+                when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    @Test
-    void getOrder_ShouldThrowNotFoundException_WhenNotExists() {
-        // Given
-        when(orderRepository.findById(any(OrderId.class))).thenReturn(Optional.empty());
+                when(inventoryService.reserveStock(anyString(), anyInt(), anyString()))
+                                .thenReturn(new ReservationResult.ServiceUnavailable("Service Down"));
 
-        // When & Then
-        assertThatThrownBy(() -> orderService.getOrder("order_123"))
-                .isInstanceOf(NotFoundException.class);
-    }
+                // When & Then
+                assertThatThrownBy(() -> orderService.createOrder(createCommand, idempotencyKey))
+                                .isInstanceOf(ConflictException.class);
 
-    private Order createTestOrder() {
-        return Order.create(
-                new CustomerId(customerId),
-                List.of(OrderItem.create(
-                        productId,
-                        "Product",
-                        1,
-                        new Money(BigDecimal.TEN, "USD"))),
-                idempotencyKey);
-    }
+                // No items were reserved, so no rollback calls expected for actual items
+                verify(inventoryService, never()).releaseStock(anyString(), anyInt(), anyString());
+        }
+
+        @Test
+        void cancelOrder_ShouldReleaseStock_WhenOrderWasConfirmed() {
+                // Given
+                Order confirmedOrder = createTestOrder();
+                confirmedOrder.confirm();
+                String orderId = "order_123";
+
+                when(orderRepository.findById(any(OrderId.class))).thenReturn(Optional.of(confirmedOrder));
+                when(orderRepository.save(any(Order.class))).thenReturn(confirmedOrder);
+
+                // When
+                orderService.cancelOrder(orderId, "Customer request");
+
+                // Then
+                assertThat(confirmedOrder.getStatus()).isInstanceOf(OrderStatus.Cancelled.class);
+                verify(inventoryService).releaseStock(eq(productId), eq(1), eq(orderId));
+                verify(orderRepository).save(confirmedOrder);
+        }
+
+        @Test
+        void getOrder_ShouldReturnOrder_WhenExists() {
+                // Given
+                Order order = createTestOrder();
+                when(orderRepository.findById(any(OrderId.class))).thenReturn(Optional.of(order));
+
+                // When
+                OrderResponse response = orderService.getOrder("order_123");
+
+                // Then
+                assertThat(response).isNotNull();
+                assertThat(response.id()).isEqualTo(order.getId().value());
+        }
+
+        @Test
+        void getOrder_ShouldThrowNotFoundException_WhenNotExists() {
+                // Given
+                when(orderRepository.findById(any(OrderId.class))).thenReturn(Optional.empty());
+
+                // When & Then
+                assertThatThrownBy(() -> orderService.getOrder("order_123"))
+                                .isInstanceOf(NotFoundException.class);
+        }
+
+        private Order createTestOrder() {
+                return Order.create(
+                                new CustomerId(customerId),
+                                List.of(OrderItem.create(
+                                                productId,
+                                                "Product",
+                                                1,
+                                                new Money(BigDecimal.TEN, "USD"))),
+                                idempotencyKey);
+        }
 }
