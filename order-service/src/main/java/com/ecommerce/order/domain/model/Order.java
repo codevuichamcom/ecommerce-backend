@@ -12,10 +12,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import lombok.Getter;
+
 /**
  * Order aggregate root.
  * Manages order lifecycle and contains order items.
  */
+@Getter
 public class Order extends AggregateRoot<OrderId> {
 
     private final OrderId id;
@@ -142,39 +145,9 @@ public class Order extends AggregateRoot<OrderId> {
                 .reduce(Money.zero(), Money::add);
     }
 
-    // Getters
-    @Override
-    public OrderId getId() {
-        return id;
-    }
-
-    public CustomerId getCustomerId() {
-        return customerId;
-    }
-
+    // Custom business getters
     public List<OrderItem> getItems() {
         return Collections.unmodifiableList(items);
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public Money getTotalAmount() {
-        return totalAmount;
-    }
-
-    public String getIdempotencyKey() {
-        return idempotencyKey;
-    }
-
-    @Override
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
     }
 
     public int getTotalItems() {

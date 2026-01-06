@@ -6,6 +6,8 @@ import com.ecommerce.inventory.domain.event.StockDepleted;
 import com.ecommerce.inventory.domain.event.StockReleased;
 import com.ecommerce.inventory.domain.event.StockReserved;
 
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.Objects;
 
@@ -13,6 +15,7 @@ import java.util.Objects;
  * Inventory aggregate root.
  * Manages stock levels for a product with reservation support.
  */
+@Getter
 public class Inventory extends AggregateRoot<InventoryId> {
 
     private final InventoryId id;
@@ -189,16 +192,7 @@ public class Inventory extends AggregateRoot<InventoryId> {
         updatedAt = Instant.now();
     }
 
-    // Getters
-    @Override
-    public InventoryId getId() {
-        return id;
-    }
-
-    public String getProductId() {
-        return productId;
-    }
-
+    // Custom business getters
     public int getAvailableQuantity() {
         return availableQuantity.value();
     }
@@ -209,18 +203,5 @@ public class Inventory extends AggregateRoot<InventoryId> {
 
     public int getTotalQuantity() {
         return availableQuantity.value() + reservedQuantity.value();
-    }
-
-    public Long getVersion() {
-        return version;
-    }
-
-    @Override
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
     }
 }

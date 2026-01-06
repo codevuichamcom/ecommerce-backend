@@ -3,6 +3,8 @@ package com.ecommerce.product.domain.model;
 import com.ecommerce.common.domain.AggregateRoot;
 import com.ecommerce.common.util.IdGenerator;
 
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.Objects;
 
@@ -10,6 +12,7 @@ import java.util.Objects;
  * Product aggregate root.
  * Represents a product in the catalog.
  */
+@Getter
 public class Product extends AggregateRoot<ProductId> {
 
     private final ProductId id;
@@ -115,41 +118,6 @@ public class Product extends AggregateRoot<ProductId> {
             this.price = price;
         }
         this.updatedAt = Instant.now();
-    }
-
-    // Getters
-    @Override
-    public ProductId getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getSku() {
-        return sku;
-    }
-
-    public Money getPrice() {
-        return price;
-    }
-
-    public ProductStatus getStatus() {
-        return status;
-    }
-
-    @Override
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
     }
 
     public boolean isAvailable() {
