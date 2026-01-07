@@ -90,6 +90,7 @@ public class OrderEventConsumer {
         }
     }
 
+    @SuppressWarnings("null")
     private boolean isAlreadyProcessed(String eventId) {
         UUID uuid = UUID.fromString(eventId);
         return processedEventRepository.existsById(uuid);

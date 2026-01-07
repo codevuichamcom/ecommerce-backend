@@ -71,6 +71,7 @@ public class OutboxPoller {
         }
     }
 
+    @SuppressWarnings("null")
     private void publishToKafka(OutboxMessage message) {
         // Use aggregateId as the key for consistent partitioning
         CompletableFuture<?> future = kafkaTemplate.send(
