@@ -50,6 +50,12 @@ subprojects {
         "testImplementation"("org.assertj:assertj-core")
     }
     
+    tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
+        layered {
+            enabled.set(true)
+        }
+    }
+
     tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
         options.compilerArgs.addAll(listOf(

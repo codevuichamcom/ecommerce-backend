@@ -1,0 +1,12 @@
+.gradle
+build
+bin
+!build/libs/*.jar
+.vscode
+.git
+.gitignore
+*.md
+docs
+docker
+Dockerfile
+.dockerignore
