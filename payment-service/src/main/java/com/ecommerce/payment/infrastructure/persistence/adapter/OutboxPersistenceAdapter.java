@@ -38,8 +38,8 @@ public class OutboxPersistenceAdapter implements OutboxRepository {
     }
 
     @Override
-    public List<OutboxMessage> findUnpublishedOrderByCreatedAt(int limit) {
-        return jpaRepository.findUnpublishedOrderByCreatedAt(limit).stream()
+    public List<OutboxMessage> findUnpublishedForUpdate(int limit) {
+        return jpaRepository.findUnpublishedForUpdate(limit).stream()
                 .map(this::toMessage)
                 .toList();
     }

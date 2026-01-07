@@ -4,7 +4,6 @@ import com.ecommerce.common.outbox.OutboxMessage;
 import com.ecommerce.common.outbox.OutboxRepository;
 import com.ecommerce.order.infrastructure.persistence.entity.OutboxEventEntity;
 import com.ecommerce.order.infrastructure.persistence.repository.OutboxJpaRepository;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +41,8 @@ public class OutboxPersistenceAdapter implements OutboxRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<OutboxMessage> findUnpublishedOrderByCreatedAt(int limit) {
-        return repository.findByPublishedFalseOrderByCreatedAtAsc(PageRequest.of(0, limit))
+    public List<OutboxMessage> findUnpublishedForUpdate(int limit) {
+        return repository.findUnpublishedForUpdate(limit)
                 .stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());

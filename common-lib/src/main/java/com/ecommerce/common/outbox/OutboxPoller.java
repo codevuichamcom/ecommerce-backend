@@ -51,7 +51,7 @@ public class OutboxPoller {
     @Scheduled(fixedDelayString = "${outbox.poll.interval-ms:1000}")
     @Transactional
     public void pollAndPublish() {
-        List<OutboxMessage> messages = outboxRepository.findUnpublishedOrderByCreatedAt(batchSize);
+        List<OutboxMessage> messages = outboxRepository.findUnpublishedForUpdate(batchSize);
 
         if (messages.isEmpty()) {
             return;
