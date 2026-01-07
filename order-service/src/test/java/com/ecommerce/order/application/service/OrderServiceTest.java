@@ -9,8 +9,7 @@ import com.ecommerce.order.application.port.out.ProductServicePort.ProductDetail
 import com.ecommerce.order.domain.model.*;
 import com.ecommerce.order.domain.repository.OrderRepository;
 import com.ecommerce.order.domain.saga.OrderSagaRepository;
-import com.ecommerce.common.outbox.OutboxRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,10 +39,7 @@ class OrderServiceTest {
         private OrderSagaRepository sagaRepository;
 
         @Mock
-        private OutboxRepository outboxRepository;
-
-        @Mock
-        private ObjectMapper objectMapper;
+        private com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher;
 
         @InjectMocks
         private OrderService orderService;
@@ -100,7 +96,7 @@ class OrderServiceTest {
                 assertThat(response.status()).isEqualTo("PENDING");
                 verify(orderRepository).save(any(Order.class));
                 verify(sagaRepository).save(any());
-                verify(outboxRepository).save(any());
+                verify(outboxEventPublisher).publish(anyString(), anyString(), any());
         }
 
         // Removed createOrder_ShouldRollbackAndThrow_WhenInsufficientStock as it is now
@@ -137,7 +133,7 @@ class OrderServiceTest {
                 // Then
                 assertThat(confirmedOrder.getStatus()).isInstanceOf(OrderStatus.Cancelled.class);
                 verify(orderRepository).save(confirmedOrder);
-                verify(outboxRepository).save(any());
+                verify(outboxEventPublisher).publish(anyString(), anyString(), any());
         }
 
         @Test

@@ -40,16 +40,17 @@ public class OrderEventConsumer {
         try {
             JsonNode node = objectMapper.readTree(message);
             String eventId = node.get("eventId").asText();
+            String eventType = node.has("eventType") ? node.get("eventType").asText() : "";
 
             if (isAlreadyProcessed(eventId)) {
                 log.info("Inventory event already processed: {}", eventId);
                 return;
             }
 
-            if (message.contains("AllItemsReserved")) {
+            if ("AllItemsReserved".equals(eventType) || message.contains("AllItemsReserved")) {
                 var event = objectMapper.readValue(message, InventoryEvents.AllItemsReserved.class);
                 handleAllItemsReserved(event);
-            } else if (message.contains("StockReservationFailed")) {
+            } else if ("StockReservationFailed".equals(eventType) || message.contains("StockReservationFailed")) {
                 var event = objectMapper.readValue(message, InventoryEvents.StockReservationFailed.class);
                 handleStockReservationFailed(event);
             }
@@ -67,16 +68,17 @@ public class OrderEventConsumer {
         try {
             JsonNode node = objectMapper.readTree(message);
             String eventId = node.get("eventId").asText();
+            String eventType = node.has("eventType") ? node.get("eventType").asText() : "";
 
             if (isAlreadyProcessed(eventId)) {
                 log.info("Payment event already processed: {}", eventId);
                 return;
             }
 
-            if (message.contains("PaymentCompleted")) {
+            if ("PaymentCompleted".equals(eventType) || message.contains("PaymentCompleted")) {
                 var event = objectMapper.readValue(message, PaymentEvents.PaymentCompleted.class);
                 handlePaymentCompleted(event);
-            } else if (message.contains("PaymentFailed")) {
+            } else if ("PaymentFailed".equals(eventType) || message.contains("PaymentFailed")) {
                 var event = objectMapper.readValue(message, PaymentEvents.PaymentFailed.class);
                 handlePaymentFailed(event);
             }

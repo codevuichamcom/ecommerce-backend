@@ -1,5 +1,6 @@
 package com.ecommerce.common.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 
 /**
@@ -23,6 +24,7 @@ public interface DomainEvent {
     /**
      * Name of the event type for serialization/routing.
      */
+    @JsonProperty("eventType")
     default String eventType() {
         return this.getClass().getSimpleName();
     }

@@ -10,6 +10,11 @@ spring:
     virtual:
       enabled: true
   
+  # Jackson configuration
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+  
   # Database
   datasource:
     url: jdbc:postgresql://localhost:5432/order_db

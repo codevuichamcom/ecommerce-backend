@@ -27,5 +27,8 @@ dependencies {
     
     // SLF4J for logging
     api("org.slf4j:slf4j-api")
+
+    // Testing
+    testImplementation("org.junit.platform:junit-platform-launcher")
 }
 
