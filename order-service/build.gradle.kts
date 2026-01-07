@@ -13,6 +13,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.kafka:spring-kafka")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     
     // HTTP Client for service communication
