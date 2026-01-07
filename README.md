@@ -1,91 +1,116 @@
-# Modern E-commerce Backend
+# 🛒 Modern E-commerce Microservices Platform
 
-A microservice-based e-commerce platform built with **Java 21** and **Spring Boot 3.2**.
+[![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://jdk.java.net/21/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-green.svg)](https://spring.io/projects/spring-boot)
+[![Graduate](https://img.shields.io/badge/Architecture-Hexagonal-blueviolet.svg)](#architecture)
 
-## 🏗️ Architecture
+A high-performance, scalable E-commerce backend built with **Java 21**, **Spring Boot**, and **PostgreSQL**. The system demonstrates advanced distributed system patterns including **Event-Driven Architecture**, **Saga Pattern**, and **Transactional Outbox**.
 
-The platform follows a modern, distributed architecture designed for scalability and reliability.
+---
 
-- **Hexagonal Architecture** (Ports & Adapters) per service
-- **Domain-Driven Design (DDD)** core principles
-- **Event-Driven Architecture** using the **Saga Pattern**
-- **Transactional Outbox Pattern** for reliable messaging
+## 🏗️ Architecture Design
 
-Detailed documentation:
-- [System Overview](docs/architecture/system-overview.md)
-- [Order Creation Saga Flow](docs/architecture/order-saga-flow.md)
-- [Transactional Outbox Mechanism](docs/architecture/outbox-pattern.md)
+We move beyond simple CRUD. This system handles failure scenarios, distributed transactions, and high concurrency using industry-standard patterns.
 
-## 🚀 Tech Stack
+*   **Hexagonal Architecture**: Clean separation of Domain, Application, and Infrastructure layers.
+*   **Transactional Outbox**: Guaranteed event delivery (bye-bye distributed transactions).
+*   **Saga Pattern**: Orchestrated workflows for complex operations like "Order Creation".
+*   **Idempotency**: Safe retry mechanisms at API and Event Consumer levels.
 
-| Category | Technology |
-|----------|------------|
-| Language | Java 21 (LTS) |
-| Framework | Spring Boot 3.2.5 |
-| Build | Gradle 8.7 (Kotlin DSL) |
-| Database | PostgreSQL 16 |
-| Cache | Redis 7 |
-| Messaging | Kafka (Phase 2) |
+### 📚 Documentation
 
-## 📦 Services
+Dive deep into the engineering decisions:
 
-| Service | Port | Description |
-|---------|------|-------------|
-| product-service | 8081 | Product catalog management |
-| inventory-service | 8082 | Stock & reservation management |
-| order-service | 8083 | Order processing |
+*   [**System Overview**](docs/architecture/system-overview.md) - The High Level Design (HLD) and Container Diagrams.
+*   [**Order Saga Flow**](docs/architecture/order-saga-flow.md) - How we coordinate Order, Inventory, and Payment services.
+*   [**Outbox Pattern**](docs/architecture/outbox-pattern.md) - How we solve the dual-write problem.
 
-## 🛠️ Prerequisites
+---
 
-- Java 21+
-- Docker & Docker Compose
-- Gradle 8.7+ (or use wrapper)
+## ⚡ Key Features
 
-## 🏃 Quick Start
+*   **Latest Tech Stack**: Java 21 LTS, Virtual Threads (Project Loom), Records, Pattern Matching.
+*   **Performance**: Optimistic Locking for inventory, Redis for caching, PostgreSQL SKIP LOCKED for event polling.
+*   **Reliability**: Comprehensive test suite (Unit, Integration) using TestContainers.
 
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+*   Docker & Docker Compose
+*   Java 21 SDK
+*   Gradle 8+
+
+### 1️⃣ Start Infrastructure
+Spin up PostgreSQL, Redis, and Kafka in containers.
 ```bash
-# Start infrastructure
 cd docker
 docker-compose up -d
+```
 
-# Build all services
+### 2️⃣ Build Services
+Compile and run tests.
+```bash
 ./gradlew build
+```
 
-# Run individual services
+### 3️⃣ Run Services
+Start the microservices (in separate terminals).
+```bash
+# Terminal 1: Core
 ./gradlew :product-service:bootRun
 ./gradlew :inventory-service:bootRun
+
+# Terminal 2: Orchestration & Utils
+./gradlew :payment-service:bootRun
+./gradlew :notification-service:bootRun
 ./gradlew :order-service:bootRun
 ```
 
+---
+
+## 📦 Service Catalog
+
+| Service | Port | Responsibility |
+| :--- | :--- | :--- |
+| **Product Service** | `8081` | Catalog management, Price lookups. |
+| **Inventory Service** | `8082` | Stock management, Optimistic reservation. |
+| **Order Service** | `8083` | Process Orchestrator (Saga), State machine. |
+| **Payment Service** | `8084` | Payment processing gateway. |
+| **Notification** | `8085` | Email & Push notification handler. |
+
+---
+
 ## 🧪 Testing
 
+We take quality seriously.
+
 ```bash
-# Run all tests
+# Run Fast Unit Tests
 ./gradlew test
 
-# Run integration tests (requires Docker)
+# Run Integration Tests (Requires Docker)
 ./gradlew integrationTest
 ```
 
-## ☕ Java 21 Features Used
+---
 
-- **Records** - Immutable DTOs, Commands, Value Objects
-- **Sealed Classes** - Type-safe state machines
-- **Pattern Matching** - Exhaustive switch expressions
-- **Virtual Threads** - Scalable request handling
-
-## 📁 Project Structure
+## � Project Structure
 
 ```
 ecommerce-platform/
-├── common-lib/          # Shared utilities
-├── product-service/     # Product catalog
-├── inventory-service/   # Stock management
-├── order-service/       # Order processing
-├── docker/              # Docker configs
-└── build.gradle.kts     # Root build
+├── common-lib/             # Shared Domain Events, Exception Handling, Outbox Logic
+├── product-service/        # Domain: Catalog
+├── inventory-service/      # Domain: Stock
+├── order-service/          # Domain: Order Lifecycle (The brain)
+├── payment-service/        # Domain: Finance
+├── notification-service/   # Domain: Communication
+├── docker/                 # Infrastructure as Code
+└── docs/                   # Architecture & Design Docs
 ```
 
-## 📄 License
+---
 
+## 📄 License
 MIT License
