@@ -4,9 +4,17 @@ A microservice-based e-commerce platform built with **Java 21** and **Spring Boo
 
 ## 🏗️ Architecture
 
-- **Hexagonal Architecture** (Ports & Adapters)
-- **Domain-Driven Design** principles
-- **Event-Driven** communication (Phase 2)
+The platform follows a modern, distributed architecture designed for scalability and reliability.
+
+- **Hexagonal Architecture** (Ports & Adapters) per service
+- **Domain-Driven Design (DDD)** core principles
+- **Event-Driven Architecture** using the **Saga Pattern**
+- **Transactional Outbox Pattern** for reliable messaging
+
+Detailed documentation:
+- [System Overview](docs/architecture/system-overview.md)
+- [Order Creation Saga Flow](docs/architecture/order-saga-flow.md)
+- [Transactional Outbox Mechanism](docs/architecture/outbox-pattern.md)
 
 ## 🚀 Tech Stack
 
