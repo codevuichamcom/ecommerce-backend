@@ -11,6 +11,9 @@ import com.ecommerce.order.application.port.out.ProductServicePort;
 import com.ecommerce.order.application.port.out.ProductServicePort.ProductDetails;
 import com.ecommerce.order.domain.model.*;
 import com.ecommerce.order.domain.repository.OrderRepository;
+import com.ecommerce.order.domain.saga.OrderSagaRepository;
+import com.ecommerce.common.outbox.OutboxRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +41,13 @@ class OrderServiceTest {
         private ProductServicePort productService;
 
         @Mock
-        private InventoryServicePort inventoryService;
+        private OrderSagaRepository sagaRepository;
+
+        @Mock
+        private OutboxRepository outboxRepository;
+
+        @Mock
+        private ObjectMapper objectMapper;
 
         @InjectMocks
         private OrderService orderService;
@@ -79,55 +88,27 @@ class OrderServiceTest {
         }
 
         @Test
-        void createOrder_ShouldCreateAndConfirmOrder_WhenSuccessful() {
+        void createOrder_ShouldCreateAndConfirmOrder_WhenSuccessful() throws Exception {
                 // Given
                 when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
                 when(productService.getProduct(productId)).thenReturn(productDetails);
-
                 when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
-
-                when(inventoryService.reserveStock(anyString(), anyInt(), anyString()))
-                                .thenReturn(new ReservationResult.Success(10, 2));
 
                 // When
                 OrderResponse response = orderService.createOrder(createCommand, idempotencyKey);
 
                 // Then
                 assertThat(response).isNotNull();
-                assertThat(response.status()).isEqualTo("CONFIRMED");
-                verify(orderRepository, atLeastOnce()).save(any(Order.class));
+                // Note: In the new implementation, status remains PENDING until saga processes
+                // it
+                assertThat(response.status()).isEqualTo("PENDING");
+                verify(orderRepository).save(any(Order.class));
+                verify(sagaRepository).save(any());
+                verify(outboxRepository).save(any());
         }
 
-        @Test
-        void createOrder_ShouldRollbackAndThrow_WhenInsufficientStock() {
-                // Given
-                String productId2 = "prod_456";
-                createCommand = new CreateOrderCommand(
-                                customerId,
-                                List.of(
-                                                new OrderItemRequest(productId, 2),
-                                                new OrderItemRequest(productId2, 1)));
-
-                when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
-                when(productService.getProduct(productId)).thenReturn(productDetails);
-                when(productService.getProduct(productId2))
-                                .thenReturn(new ProductDetails(productId2, "Product 2", BigDecimal.TEN, "USD", true));
-
-                when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
-
-                // First succeeds, second fails
-                when(inventoryService.reserveStock(eq(productId), eq(2), anyString()))
-                                .thenReturn(new ReservationResult.Success(10, 2));
-                when(inventoryService.reserveStock(eq(productId2), eq(1), anyString()))
-                                .thenReturn(new ReservationResult.InsufficientStock(1, 0));
-
-                // When & Then
-                assertThatThrownBy(() -> orderService.createOrder(createCommand, idempotencyKey))
-                                .isInstanceOf(ConflictException.class);
-
-                // Should rollback the first one
-                verify(inventoryService).releaseStock(eq(productId), eq(2), anyString());
-        }
+        // Removed createOrder_ShouldRollbackAndThrow_WhenInsufficientStock as it is now
+        // handled asynchronously by the Saga
 
         @Test
         void createOrder_ShouldThrowValidationException_WhenProductInactive() {
@@ -141,26 +122,11 @@ class OrderServiceTest {
                                 .isInstanceOf(com.ecommerce.common.exception.ValidationException.class);
         }
 
-        @Test
-        void createOrder_ShouldRollback_WhenInventoryServiceUnavailable() {
-                // Given
-                when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
-                when(productService.getProduct(productId)).thenReturn(productDetails);
-                when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
-
-                when(inventoryService.reserveStock(anyString(), anyInt(), anyString()))
-                                .thenReturn(new ReservationResult.ServiceUnavailable("Service Down"));
-
-                // When & Then
-                assertThatThrownBy(() -> orderService.createOrder(createCommand, idempotencyKey))
-                                .isInstanceOf(ConflictException.class);
-
-                // No items were reserved, so no rollback calls expected for actual items
-                verify(inventoryService, never()).releaseStock(anyString(), anyInt(), anyString());
-        }
+        // Removed createOrder_ShouldRollback_WhenInventoryServiceUnavailable as it is
+        // now handled asynchronously by the Saga
 
         @Test
-        void cancelOrder_ShouldReleaseStock_WhenOrderWasConfirmed() {
+        void cancelOrder_ShouldPublishCancelledEvent() throws Exception {
                 // Given
                 Order confirmedOrder = createTestOrder();
                 confirmedOrder.confirm();
@@ -174,8 +140,8 @@ class OrderServiceTest {
 
                 // Then
                 assertThat(confirmedOrder.getStatus()).isInstanceOf(OrderStatus.Cancelled.class);
-                verify(inventoryService).releaseStock(eq(productId), eq(1), eq(orderId));
                 verify(orderRepository).save(confirmedOrder);
+                verify(outboxRepository).save(any());
         }
 
         @Test
