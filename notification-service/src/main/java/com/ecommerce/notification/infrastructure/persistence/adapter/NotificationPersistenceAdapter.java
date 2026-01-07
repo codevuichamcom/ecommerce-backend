@@ -22,6 +22,7 @@ public class NotificationPersistenceAdapter implements NotificationRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Notification save(Notification notification) {
         var entity = NotificationMapper.toEntity(notification);
         var savedEntity = jpaRepository.save(entity);
@@ -29,6 +30,7 @@ public class NotificationPersistenceAdapter implements NotificationRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<Notification> findById(NotificationId id) {
         return jpaRepository.findById(id.value())
                 .map(NotificationMapper::toDomain);
