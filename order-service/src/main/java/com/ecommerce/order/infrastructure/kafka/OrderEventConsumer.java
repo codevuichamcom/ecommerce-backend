@@ -3,8 +3,6 @@ package com.ecommerce.order.infrastructure.kafka;
 import com.ecommerce.common.events.InventoryEvents;
 import com.ecommerce.common.events.OrderEvents;
 import com.ecommerce.common.events.PaymentEvents;
-import com.ecommerce.common.outbox.OutboxMessage;
-import com.ecommerce.common.outbox.OutboxRepository;
 import com.ecommerce.order.domain.model.Order;
 import com.ecommerce.order.domain.model.OrderId;
 
@@ -13,7 +11,6 @@ import com.ecommerce.order.domain.repository.OrderRepository;
 import com.ecommerce.order.domain.saga.OrderSagaRepository;
 import com.ecommerce.order.infrastructure.persistence.entity.ProcessedEventEntity;
 import com.ecommerce.order.infrastructure.persistence.repository.ProcessedEventJpaRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +29,7 @@ public class OrderEventConsumer {
 
     private final OrderSagaRepository sagaRepository;
     private final OrderRepository orderRepository;
-    private final OutboxRepository outboxRepository;
+    private final com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher;
     private final ProcessedEventJpaRepository processedEventRepository;
     private final ObjectMapper objectMapper;
 
@@ -90,6 +87,7 @@ public class OrderEventConsumer {
         }
     }
 
+    @SuppressWarnings("null")
     private boolean isAlreadyProcessed(String eventId) {
         UUID uuid = UUID.fromString(eventId);
         return processedEventRepository.existsById(uuid);
@@ -110,9 +108,7 @@ public class OrderEventConsumer {
             sagaRepository.save(saga);
 
             // Fetch order and publish PaymentRequested
-            orderRepository.findById(orderId).ifPresent(order -> {
-                publishPaymentRequested(order);
-            });
+            orderRepository.findById(orderId).ifPresent(this::publishPaymentRequested);
         });
     }
 
@@ -158,7 +154,6 @@ public class OrderEventConsumer {
 
             // Compensation: Actually we should publish an event that Inventory service
             // listens to
-            // For now just logging
             log.info("Publishing compensation (release inventory) for order {}", event.orderId());
 
             orderRepository.findById(orderId).ifPresent(order -> {
@@ -174,7 +169,7 @@ public class OrderEventConsumer {
                 order.getCustomerId().value(),
                 order.getTotalAmount().amount(),
                 order.getTotalAmount().currency());
-        saveToOutbox(order.getId().value(), "PaymentRequested", event);
+        outboxEventPublisher.publish("Order", order.getId().value(), event);
     }
 
     private void publishOrderConfirmed(Order order) {
@@ -183,21 +178,6 @@ public class OrderEventConsumer {
                 order.getCustomerId().value(),
                 order.getTotalAmount().amount(),
                 order.getTotalAmount().currency());
-        saveToOutbox(order.getId().value(), "OrderConfirmed", event);
-    }
-
-    private void saveToOutbox(String aggregateId, String eventType, Object event) {
-        try {
-            String payload = objectMapper.writeValueAsString(event);
-            OutboxMessage message = OutboxMessage.create(
-                    UUID.randomUUID().toString(),
-                    "Order",
-                    aggregateId,
-                    eventType,
-                    payload);
-            outboxRepository.save(message);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to save event to outbox: {}", e.getMessage());
-        }
+        outboxEventPublisher.publish("Order", order.getId().value(), event);
     }
 }

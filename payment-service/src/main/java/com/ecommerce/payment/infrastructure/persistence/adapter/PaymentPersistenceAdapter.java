@@ -22,15 +22,15 @@ public class PaymentPersistenceAdapter implements PaymentRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Payment save(Payment payment) {
         var entity = PaymentMapper.toEntity(payment);
-        var savedEntity = jpaRepository.save(entity);
-        return PaymentMapper.toDomain(savedEntity);
+        return PaymentMapper.toDomain(jpaRepository.save(entity));
     }
 
     @Override
     public Optional<Payment> findById(PaymentId id) {
-        return jpaRepository.findById(id.value())
+        return jpaRepository.findById(java.util.Objects.requireNonNull(id.value()))
                 .map(PaymentMapper::toDomain);
     }
 

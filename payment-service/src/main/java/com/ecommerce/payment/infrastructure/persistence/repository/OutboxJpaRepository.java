@@ -16,8 +16,14 @@ import java.util.List;
 @Repository
 public interface OutboxJpaRepository extends JpaRepository<OutboxEventEntity, String> {
 
-    @Query("SELECT o FROM OutboxEventEntity o WHERE o.published = false ORDER BY o.createdAt ASC LIMIT :limit")
-    List<OutboxEventEntity> findUnpublishedOrderByCreatedAt(@Param("limit") int limit);
+    @Query(value = """
+            SELECT * FROM outbox_events
+            WHERE published = false
+            ORDER BY created_at ASC
+            LIMIT :limit
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    List<OutboxEventEntity> findUnpublishedForUpdate(@Param("limit") int limit);
 
     @Modifying
     @Query("UPDATE OutboxEventEntity o SET o.published = true, o.publishedAt = :publishedAt WHERE o.id = :id")

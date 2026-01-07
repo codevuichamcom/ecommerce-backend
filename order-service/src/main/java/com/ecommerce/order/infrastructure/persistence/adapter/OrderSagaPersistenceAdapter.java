@@ -19,6 +19,7 @@ public class OrderSagaPersistenceAdapter implements OrderSagaRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public OrderSaga save(OrderSaga saga) {
         OrderSagaJpaEntity entity = toEntity(saga);
         OrderSagaJpaEntity savedEntity = repository.save(entity);
@@ -26,6 +27,7 @@ public class OrderSagaPersistenceAdapter implements OrderSagaRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<OrderSaga> findById(OrderId orderId) {
         return repository.findById(orderId.value())
                 .map(this::toDomain);

@@ -51,7 +51,7 @@ public class OutboxPoller {
     @Scheduled(fixedDelayString = "${outbox.poll.interval-ms:1000}")
     @Transactional
     public void pollAndPublish() {
-        List<OutboxMessage> messages = outboxRepository.findUnpublishedOrderByCreatedAt(batchSize);
+        List<OutboxMessage> messages = outboxRepository.findUnpublishedForUpdate(batchSize);
 
         if (messages.isEmpty()) {
             return;
@@ -71,6 +71,7 @@ public class OutboxPoller {
         }
     }
 
+    @SuppressWarnings("null")
     private void publishToKafka(OutboxMessage message) {
         // Use aggregateId as the key for consistent partitioning
         CompletableFuture<?> future = kafkaTemplate.send(

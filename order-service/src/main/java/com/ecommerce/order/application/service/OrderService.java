@@ -2,8 +2,6 @@ package com.ecommerce.order.application.service;
 
 import com.ecommerce.common.events.OrderEvents;
 import com.ecommerce.common.exception.NotFoundException;
-import com.ecommerce.common.outbox.OutboxMessage;
-import com.ecommerce.common.outbox.OutboxRepository;
 import com.ecommerce.order.application.dto.CreateOrderCommand;
 import com.ecommerce.order.application.dto.OrderResponse;
 import com.ecommerce.order.application.port.out.ProductServicePort;
@@ -11,8 +9,6 @@ import com.ecommerce.order.domain.model.*;
 import com.ecommerce.order.domain.repository.OrderRepository;
 import com.ecommerce.order.domain.saga.OrderSaga;
 import com.ecommerce.order.domain.saga.OrderSagaRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Order application service.
@@ -35,19 +30,16 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductServicePort productService;
     private final OrderSagaRepository sagaRepository;
-    private final OutboxRepository outboxRepository;
-    private final ObjectMapper objectMapper;
+    private final com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher;
 
     public OrderService(OrderRepository orderRepository,
             ProductServicePort productService,
             OrderSagaRepository sagaRepository,
-            OutboxRepository outboxRepository,
-            ObjectMapper objectMapper) {
+            com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher) {
         this.orderRepository = orderRepository;
         this.productService = productService;
         this.sagaRepository = sagaRepository;
-        this.outboxRepository = outboxRepository;
-        this.objectMapper = objectMapper;
+        this.outboxEventPublisher = outboxEventPublisher;
     }
 
     /**
@@ -123,20 +115,7 @@ public class OrderService {
                 order.getTotalAmount().currency(),
                 order.getIdempotencyKey());
 
-        try {
-            String payload = objectMapper.writeValueAsString(event);
-            OutboxMessage message = OutboxMessage.create(
-                    UUID.randomUUID().toString(),
-                    "Order",
-                    order.getId().value(),
-                    "OrderCreated",
-                    payload);
-            outboxRepository.save(message);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize OrderCreated event for order {}: {}",
-                    order.getId().value(), e.getMessage());
-            throw new RuntimeException("Failed to serialize event", e);
-        }
+        outboxEventPublisher.publish("Order", order.getId().value(), event);
     }
 
     /**
@@ -178,7 +157,6 @@ public class OrderService {
     private void publishOrderCancelledEvent(Order order, String reason) {
         // requiresRefund is true if order status was confirmed (implying payment was
         // made)
-        // In our current simple saga, we might need a more complex check
         boolean requiresRefund = order.getStatus() instanceof OrderStatus.Confirmed;
 
         OrderEvents.OrderCancelled event = OrderEvents.OrderCancelled.create(
@@ -187,19 +165,7 @@ public class OrderService {
                 reason,
                 requiresRefund);
 
-        try {
-            String payload = objectMapper.writeValueAsString(event);
-            OutboxMessage message = OutboxMessage.create(
-                    UUID.randomUUID().toString(),
-                    "Order",
-                    order.getId().value(),
-                    "OrderCancelled",
-                    payload);
-            outboxRepository.save(message);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize OrderCancelled event for order {}: {}",
-                    order.getId().value(), e.getMessage());
-        }
+        outboxEventPublisher.publish("Order", order.getId().value(), event);
     }
 
     private Order findOrderOrThrow(String id) {

@@ -54,11 +54,43 @@ public class PaymentService {
     public PaymentResponse processPayment(ProcessPaymentCommand command) {
         log.info("Processing payment for order: {}", command.orderId());
 
+        // 1. Transactional: Check idempotency and initialize payment
+        Payment payment = initializePayment(command);
+        if (!(payment.getStatus() instanceof com.ecommerce.payment.domain.model.PaymentStatus.Processing)) {
+            return PaymentResponse.from(payment);
+        }
+
+        // 2. Non-Transactional: Long-running processing simulation
+        try {
+            simulatePaymentProcessing();
+
+            // Random failure for testing
+            if (random.nextDouble() < simulatedFailureRate) {
+                throw new RuntimeException("Simulated payment failure");
+            }
+
+            // 3. Transactional: Complete payment and publish event
+            payment = completePayment(payment.getId());
+            log.info("Payment {} completed for order {}", payment.getId().value(), command.orderId());
+
+        } catch (Exception e) {
+            // 4. Transactional: Handle failure and publish event
+            String errorCode = "PAYMENT_FAILED";
+            String reason = e.getMessage() != null ? e.getMessage() : "Unknown error";
+            payment = failPayment(payment.getId(), reason, errorCode);
+            log.error("Payment {} failed for order {}: {}", payment.getId().value(), command.orderId(), reason);
+        }
+
+        return PaymentResponse.from(payment);
+    }
+
+    @Transactional
+    public Payment initializePayment(ProcessPaymentCommand command) {
         // Check if payment already exists for this order (idempotency)
         var existingPayment = paymentRepository.findByOrderId(command.orderId());
         if (existingPayment.isPresent()) {
             log.info("Payment already exists for order {}, returning existing", command.orderId());
-            return PaymentResponse.from(existingPayment.get());
+            return existingPayment.get();
         }
 
         // Create new payment
@@ -70,54 +102,49 @@ public class PaymentService {
 
         // Start processing
         payment.startProcessing();
+        return paymentRepository.save(payment);
+    }
+
+    @Transactional
+    public Payment completePayment(PaymentId id) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Payment", id.value()));
+
+        String transactionId = "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        payment.complete(transactionId);
         payment = paymentRepository.save(payment);
 
-        // Simulate payment processing
-        try {
-            simulatePaymentProcessing();
+        // Publish PaymentCompleted event
+        var event = PaymentEvents.PaymentCompleted.create(
+                payment.getId().value(),
+                payment.getOrderId(),
+                payment.getCustomerId(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                transactionId);
+        outboxEventPublisher.publish(AGGREGATE_TYPE, payment.getId().value(), event);
 
-            // Random failure for testing
-            if (random.nextDouble() < simulatedFailureRate) {
-                throw new RuntimeException("Simulated payment failure");
-            }
+        return payment;
+    }
 
-            // Complete payment
-            String transactionId = "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-            payment.complete(transactionId);
-            payment = paymentRepository.save(payment);
+    @Transactional
+    public Payment failPayment(PaymentId id, String reason, String errorCode) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Payment", id.value()));
 
-            // Publish PaymentCompleted event
-            var event = PaymentEvents.PaymentCompleted.create(
-                    payment.getId().value(),
-                    payment.getOrderId(),
-                    payment.getCustomerId(),
-                    payment.getAmount(),
-                    payment.getCurrency(),
-                    transactionId);
-            outboxEventPublisher.publish(AGGREGATE_TYPE, payment.getId().value(), event);
+        payment.fail(reason, errorCode);
+        payment = paymentRepository.save(payment);
 
-            log.info("Payment {} completed for order {}", payment.getId().value(), command.orderId());
+        // Publish PaymentFailed event
+        var event = PaymentEvents.PaymentFailed.create(
+                payment.getId().value(),
+                payment.getOrderId(),
+                payment.getCustomerId(),
+                reason,
+                errorCode);
+        outboxEventPublisher.publish(AGGREGATE_TYPE, payment.getId().value(), event);
 
-        } catch (Exception e) {
-            // Payment failed
-            String errorCode = "PAYMENT_FAILED";
-            String reason = e.getMessage() != null ? e.getMessage() : "Unknown error";
-            payment.fail(reason, errorCode);
-            payment = paymentRepository.save(payment);
-
-            // Publish PaymentFailed event
-            var event = PaymentEvents.PaymentFailed.create(
-                    payment.getId().value(),
-                    payment.getOrderId(),
-                    payment.getCustomerId(),
-                    reason,
-                    errorCode);
-            outboxEventPublisher.publish(AGGREGATE_TYPE, payment.getId().value(), event);
-
-            log.error("Payment {} failed for order {}: {}", payment.getId().value(), command.orderId(), reason);
-        }
-
-        return PaymentResponse.from(payment);
+        return payment;
     }
 
     /**

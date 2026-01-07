@@ -15,11 +15,12 @@ public interface OutboxRepository {
     OutboxMessage save(OutboxMessage message);
 
     /**
-     * Find all unpublished messages, ordered by creation time.
+     * Find all unpublished messages with a database lock to prevent concurrent
+     * processing.
      * 
      * @param limit Maximum number of messages to return
      */
-    List<OutboxMessage> findUnpublishedOrderByCreatedAt(int limit);
+    List<OutboxMessage> findUnpublishedForUpdate(int limit);
 
     /**
      * Mark a message as published.

@@ -1,12 +1,9 @@
 package com.ecommerce.order.application.service;
 
-import com.ecommerce.common.exception.ConflictException;
 import com.ecommerce.common.exception.NotFoundException;
 import com.ecommerce.order.application.dto.CreateOrderCommand;
 import com.ecommerce.order.application.dto.OrderItemRequest;
 import com.ecommerce.order.application.dto.OrderResponse;
-import com.ecommerce.order.application.port.out.InventoryServicePort;
-import com.ecommerce.order.application.port.out.InventoryServicePort.ReservationResult;
 import com.ecommerce.order.application.port.out.ProductServicePort;
 import com.ecommerce.order.application.port.out.ProductServicePort.ProductDetails;
 import com.ecommerce.order.domain.model.*;
@@ -28,7 +25,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
