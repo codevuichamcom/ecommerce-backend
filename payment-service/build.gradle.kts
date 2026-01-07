@@ -1,9 +1,10 @@
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    java
 }
 
-description = "Order Service - Order processing and management"
+description = "Payment Service - Payment processing and management"
 
 dependencies {
     implementation(project(":common-lib"))
@@ -13,30 +14,27 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.kafka:spring-kafka")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     
-    // HTTP Client for service communication
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    // Spring Kafka
+    implementation("org.springframework.kafka:spring-kafka")
     
     // Database
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     
-    // Redis for idempotency
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    
-    // OpenAPI Documentation
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+    // Spring Retry (for transient failures)
+    implementation("org.springframework.retry:spring-retry")
+    implementation("org.springframework:spring-aspects")
     
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("com.h2database:h2")
     testImplementation("org.testcontainers:postgresql")
-    testRuntimeOnly("com.h2database:h2")
+    testImplementation("org.testcontainers:kafka")
 }
 
-tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
-    jvmArgs("--enable-preview")
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
+    archiveFileName.set("payment-service.jar")  
 }

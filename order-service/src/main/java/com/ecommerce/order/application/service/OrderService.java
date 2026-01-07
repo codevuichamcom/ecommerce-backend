@@ -1,16 +1,18 @@
 package com.ecommerce.order.application.service;
 
-import com.ecommerce.common.exception.ErrorCode;
-import com.ecommerce.common.exception.ConflictException;
+import com.ecommerce.common.events.OrderEvents;
 import com.ecommerce.common.exception.NotFoundException;
-import com.ecommerce.common.exception.ValidationException;
+import com.ecommerce.common.outbox.OutboxMessage;
+import com.ecommerce.common.outbox.OutboxRepository;
 import com.ecommerce.order.application.dto.CreateOrderCommand;
 import com.ecommerce.order.application.dto.OrderResponse;
-import com.ecommerce.order.application.port.out.InventoryServicePort;
-import com.ecommerce.order.application.port.out.InventoryServicePort.ReservationResult;
 import com.ecommerce.order.application.port.out.ProductServicePort;
 import com.ecommerce.order.domain.model.*;
 import com.ecommerce.order.domain.repository.OrderRepository;
+import com.ecommerce.order.domain.saga.OrderSaga;
+import com.ecommerce.order.domain.saga.OrderSagaRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Order application service.
@@ -31,14 +34,20 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductServicePort productService;
-    private final InventoryServicePort inventoryService;
+    private final OrderSagaRepository sagaRepository;
+    private final OutboxRepository outboxRepository;
+    private final ObjectMapper objectMapper;
 
     public OrderService(OrderRepository orderRepository,
             ProductServicePort productService,
-            InventoryServicePort inventoryService) {
+            OrderSagaRepository sagaRepository,
+            OutboxRepository outboxRepository,
+            ObjectMapper objectMapper) {
         this.orderRepository = orderRepository;
         this.productService = productService;
-        this.inventoryService = inventoryService;
+        this.sagaRepository = sagaRepository;
+        this.outboxRepository = outboxRepository;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -63,7 +72,8 @@ public class OrderService {
             var product = productService.getProduct(itemRequest.productId());
 
             if (!product.available()) {
-                throw new ValidationException(ErrorCode.PRODUCT_NOT_AVAILABLE, product.name());
+                throw new com.ecommerce.common.exception.ValidationException(
+                        com.ecommerce.common.exception.ErrorCode.PRODUCT_NOT_AVAILABLE, product.name());
             }
 
             orderItems.add(OrderItem.create(
@@ -79,49 +89,53 @@ public class OrderService {
                 orderItems,
                 idempotencyKey);
 
-        // Save order first (so we have an ID for reservation reference)
         var savedOrder = orderRepository.save(order);
-        String orderId = savedOrder.getId().value();
+        OrderId orderId = savedOrder.getId();
 
-        // 4. Reserve inventory for each item
-        List<ReservedItem> reservedItems = new ArrayList<>();
-        try {
-            for (var item : orderItems) {
-                var result = inventoryService.reserveStock(
+        // 4. Start Order Saga
+        var saga = OrderSaga.start(orderId);
+        sagaRepository.save(saga);
+
+        // 5. Publish OrderCreated event via Outbox
+        publishOrderCreatedEvent(savedOrder);
+
+        log.info("Order creation initiated: {} for customer {}",
+                orderId.value(), command.customerId());
+
+        return OrderResponse.from(savedOrder);
+    }
+
+    private void publishOrderCreatedEvent(Order order) {
+        List<OrderEvents.OrderItemData> itemData = order.getItems().stream()
+                .map(item -> new OrderEvents.OrderItemData(
                         item.productId(),
+                        item.productName(),
                         item.quantity(),
-                        orderId);
+                        item.unitPrice().amount(),
+                        item.unitPrice().currency()))
+                .toList();
 
-                // Pattern matching on reservation result
-                switch (result) {
-                    case ReservationResult.Success r ->
-                        reservedItems.add(new ReservedItem(item.productId(), item.quantity()));
+        OrderEvents.OrderCreated event = OrderEvents.OrderCreated.create(
+                order.getId().value(),
+                order.getCustomerId().value(),
+                itemData,
+                order.getTotalAmount().amount(),
+                order.getTotalAmount().currency(),
+                order.getIdempotencyKey());
 
-                    case ReservationResult.InsufficientStock is -> {
-                        throw new ConflictException(
-                                ErrorCode.INSUFFICIENT_STOCK,
-                                item.productId(), is.requested(), is.available());
-                    }
-
-                    case ReservationResult.ServiceUnavailable su -> {
-                        throw new ConflictException(ErrorCode.INVENTORY_SERVICE_UNAVAILABLE, su.message());
-                    }
-                }
-            }
-
-            // 5. Confirm order (all reservations successful)
-            savedOrder.confirm();
-            var confirmedOrder = orderRepository.save(savedOrder);
-
-            log.info("Order {} created and confirmed for customer {}",
-                    orderId, command.customerId());
-
-            return OrderResponse.from(confirmedOrder);
-
-        } catch (Exception e) {
-            // Rollback on any error
-            rollbackReservations(reservedItems, orderId);
-            throw e;
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            OutboxMessage message = OutboxMessage.create(
+                    UUID.randomUUID().toString(),
+                    "Order",
+                    order.getId().value(),
+                    "OrderCreated",
+                    payload);
+            outboxRepository.save(message);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize OrderCreated event for order {}: {}",
+                    order.getId().value(), e.getMessage());
+            throw new RuntimeException("Failed to serialize event", e);
         }
     }
 
@@ -150,30 +164,42 @@ public class OrderService {
     public OrderResponse cancelOrder(String id, String reason) {
         var order = findOrderOrThrow(id);
 
-        // Release inventory if order was confirmed
-        if (order.getStatus() instanceof OrderStatus.Confirmed) {
-            for (var item : order.getItems()) {
-                try {
-                    inventoryService.releaseStock(
-                            item.productId(),
-                            item.quantity(),
-                            id);
-
-                } catch (Exception e) {
-                    log.warn("Failed to release inventory for product {}: {}",
-                            item.productId(), e.getMessage());
-
-                    // Continue cancellation even if release fails
-                }
-            }
-        }
-
         order.cancel(reason);
         var cancelledOrder = orderRepository.save(order);
+
+        // Publish OrderCancelled event
+        publishOrderCancelledEvent(cancelledOrder, reason);
 
         log.info("Order {} cancelled: {}", id, reason);
 
         return OrderResponse.from(cancelledOrder);
+    }
+
+    private void publishOrderCancelledEvent(Order order, String reason) {
+        // requiresRefund is true if order status was confirmed (implying payment was
+        // made)
+        // In our current simple saga, we might need a more complex check
+        boolean requiresRefund = order.getStatus() instanceof OrderStatus.Confirmed;
+
+        OrderEvents.OrderCancelled event = OrderEvents.OrderCancelled.create(
+                order.getId().value(),
+                order.getCustomerId().value(),
+                reason,
+                requiresRefund);
+
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            OutboxMessage message = OutboxMessage.create(
+                    UUID.randomUUID().toString(),
+                    "Order",
+                    order.getId().value(),
+                    "OrderCancelled",
+                    payload);
+            outboxRepository.save(message);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize OrderCancelled event for order {}: {}",
+                    order.getId().value(), e.getMessage());
+        }
     }
 
     private Order findOrderOrThrow(String id) {
@@ -182,18 +208,4 @@ public class OrderService {
                 .orElseThrow(() -> new NotFoundException("Order", id));
     }
 
-    private void rollbackReservations(List<ReservedItem> reservedItems, String orderId) {
-        for (var item : reservedItems) {
-            try {
-                inventoryService.releaseStock(item.productId(), item.quantity(), orderId);
-                log.debug("Released reservation for product {}", item.productId());
-            } catch (Exception e) {
-                log.error("Failed to release reservation for product {}: {}",
-                        item.productId(), e.getMessage());
-            }
-        }
-    }
-
-    private record ReservedItem(String productId, int quantity) {
-    }
 }

@@ -5,7 +5,9 @@ include(
     "common-lib",
     "product-service",
     "inventory-service",
-    "order-service"
+    "order-service",
+    "payment-service",
+    "notification-service"
 )
 
 // Plugin management
