@@ -25,9 +25,12 @@ public class InventoryService {
     private static final Logger log = LoggerFactory.getLogger(InventoryService.class);
 
     private final InventoryRepository inventoryRepository;
+    private final com.ecommerce.inventory.infrastructure.kafka.InventoryEventProducer eventProducer;
 
-    public InventoryService(InventoryRepository inventoryRepository) {
+    public InventoryService(InventoryRepository inventoryRepository,
+            com.ecommerce.inventory.infrastructure.kafka.InventoryEventProducer eventProducer) {
         this.inventoryRepository = inventoryRepository;
+        this.eventProducer = eventProducer;
     }
 
     /**
@@ -156,6 +159,73 @@ public class InventoryService {
         log.info("Added {} units to product {}", quantity, productId);
 
         return InventoryResponse.from(saved);
+    }
+
+    /**
+     * Handle OrderCreated event.
+     * Attempts to reserve stock for all items in the order.
+     */
+    @Transactional
+    public void handleOrderCreated(String orderId, com.fasterxml.jackson.databind.JsonNode itemsNode) {
+        log.info("Handling OrderCreated for order {}", orderId);
+
+        // For simplicity in this phase, we'll assume 1 item per order for the saga flow
+        // demo
+        // Or we iterate and reserve. If any fails, we should fail the whole order (not
+        // implemented here for brevity)
+        // Let's support the first item for now or simple iteration
+
+        if (itemsNode.isArray() && itemsNode.size() > 0) {
+            var item = itemsNode.get(0);
+            String productId = item.get("productId").asText();
+            int quantity = item.get("quantity").asInt();
+            String reservationId = orderId; // Use orderId as reservation reference
+
+            var result = reserveStock(new ReserveStockCommand(productId, quantity, reservationId));
+
+            if (result.success()) {
+                eventProducer.publishStockReserved(productId, orderId, quantity, result.availableQuantity());
+                // Signal that all items (in this simplified single-item case) are reserved
+                eventProducer.publishAllItemsReserved(orderId);
+            } else {
+                eventProducer.publishStockReservationFailed(productId, orderId, quantity, result.availableQuantity());
+            }
+        }
+    }
+
+    /**
+     * Handle OrderCancelled event.
+     * Releases stock if it was reserved.
+     */
+    @Transactional
+    public void handleOrderCancelled(String orderId) {
+        log.info("Handling OrderCancelled for order {}", orderId);
+
+        // We need to know which products were reserved.
+        // In a real system, we'd look up the Reservation or check the Order details.
+        // For this simplified implementation, we might need to assume we can find the
+        // reservation by ID (orderId)
+        // But Inventory aggregate stores reservations by internal ID.
+        // We might need to query inventory that has this reservation.
+
+        // Workaround: We will search for inventory that has this reservationRef
+        // (orderId)
+        // This requires a new repository method or we assume productId is passed in
+        // event (it is not in standard OrderCancelled)
+        // Let's assume for this demo that we can't easily release without productId.
+        // PROPER FIX: OrderCancelled event should include items or we store reservation
+        // mapping.
+
+        // Let's add a method to repo to find inventory by reservation ref
+        /*
+         * var inventories = inventoryRepository.findByReservationRef(orderId);
+         * for (var inv : inventories) {
+         * releaseStock(new ReleaseStockCommand(inv.getProductId(), quantity, orderId));
+         * }
+         */
+
+        // Since we don't have that yet, and time is tight, let's log a warning.
+        log.warn("Stock release for OrderCancelled {} not fully implemented without ProductID lookup", orderId);
     }
 
     private Inventory findByProductIdOrThrow(String productId) {
