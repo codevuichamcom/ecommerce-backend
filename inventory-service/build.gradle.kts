@@ -13,6 +13,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // Event Messaging
+    implementation("org.springframework.kafka:spring-kafka")
     
     // Retry for optimistic locking
     implementation("org.springframework.retry:spring-retry")
