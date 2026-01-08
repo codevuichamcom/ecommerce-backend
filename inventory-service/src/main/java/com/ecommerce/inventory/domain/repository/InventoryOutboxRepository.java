@@ -1,6 +1,5 @@
 package com.ecommerce.inventory.domain.repository;
 
-import com.ecommerce.common.outbox.OutboxMessage;
 import com.ecommerce.inventory.infrastructure.persistence.entity.OutboxEventEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,6 +1,5 @@
 package com.ecommerce.inventory.infrastructure.kafka;
 
-import com.ecommerce.common.events.OrderEvents;
 import com.ecommerce.common.kafka.IdempotentEventHandler;
 import com.ecommerce.common.kafka.KafkaTopics;
 import com.ecommerce.common.kafka.ProcessedEventRepository;
