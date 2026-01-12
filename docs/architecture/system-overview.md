@@ -1,6 +1,6 @@
 # 🏗️ System Architecture Overview
 
-This document provides a comprehensive high-level view of the E-commerce Platform's architecture. It is designed to help developers understand the system's structure, communication patterns, and key design decisions.
+This document provides a comprehensive high-level view of the E-commerce Backend's architecture. It is designed to help developers understand the system's structure, communication patterns, and key design decisions.
 
 ## 🌟 Architectural Style
 

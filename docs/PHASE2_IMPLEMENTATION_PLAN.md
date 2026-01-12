@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Objective**: Evolve the e-commerce platform from synchronous REST-based communication to an event-driven, distributed architecture using Kafka, Saga pattern, and new services (Payment & Notification).
+**Objective**: Evolve the e-commerce backend from synchronous REST-based communication to an event-driven, distributed architecture using Kafka, Saga pattern, and new services (Payment & Notification).
 
 **Phase 1 Foundation**:
 - ✅ `product-service` (Port 8081) - Product catalog

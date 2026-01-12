@@ -1,4 +1,4 @@
-# 🛒 Modern E-commerce Microservices Platform
+# 🛒 Modern E-commerce Microservices Backend
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://jdk.java.net/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-green.svg)](https://spring.io/projects/spring-boot)
@@ -99,7 +99,7 @@ We take quality seriously.
 ## � Project Structure
 
 ```
-ecommerce-platform/
+ecommerce-backend/
 ├── common-lib/             # Shared Domain Events, Exception Handling, Outbox Logic
 ├── product-service/        # Domain: Catalog
 ├── inventory-service/      # Domain: Stock

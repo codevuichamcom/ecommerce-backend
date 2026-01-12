@@ -1,4 +1,4 @@
-rootProject.name = "ecommerce-platform"
+rootProject.name = "ecommerce-backend"
 
 // Include all subprojects
 include(

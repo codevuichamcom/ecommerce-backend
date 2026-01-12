@@ -1,6 +1,6 @@
-# 📦 Ecommerce Platform Phase 1: Core Domain Implementation
+# 📦 Ecommerce Backend Phase 1: Core Domain Implementation
 
-Welcome to the documentation for **Phase 1** of our Modern Ecommerce Platform. This phase focused on building the bedrock of the system using **Java 21**, **Spring Boot 3**, and **Hexagonal Architecture**.
+Welcome to the documentation for **Phase 1** of our Modern Ecommerce Backend. This phase focused on building the bedrock of the system using **Java 21**, **Spring Boot 3**, and **Hexagonal Architecture**.
 
 ---
 

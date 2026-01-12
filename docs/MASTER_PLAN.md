@@ -115,7 +115,7 @@ notification-service (Phase 2)
 ## 📁 Project Structure
 
 ```
-ecommerce-platform/
+ecommerce-backend/
 ├── common-lib/           # Shared code
 ├── product-service/      # Port 8081
 ├── inventory-service/    # Port 8082
