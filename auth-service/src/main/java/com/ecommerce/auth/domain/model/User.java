@@ -1,5 +1,6 @@
 package com.ecommerce.auth.domain.model;
 
+import com.ecommerce.common.security.Role;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;

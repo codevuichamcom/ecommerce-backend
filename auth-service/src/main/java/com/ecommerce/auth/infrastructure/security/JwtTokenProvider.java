@@ -1,6 +1,6 @@
 package com.ecommerce.auth.infrastructure.security;
 
-import com.ecommerce.auth.domain.model.Role;
+import com.ecommerce.common.security.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

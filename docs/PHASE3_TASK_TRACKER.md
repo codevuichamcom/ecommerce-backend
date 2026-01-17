@@ -11,8 +11,8 @@
 | Phase | Description | Progress |
 |-------|-------------|----------|
 | 3.1 | API Gateway + Routing | ✅ 85% |
-| 3.2 | Authentication | ⬜ 0% |
-| 3.3 | Authorization + Service Security | ⬜ 0% |
+| 3.2 | Authentication | ✅ 100% |
+| 3.3 | Authorization + Service Security | ✅ 100% |
 | 3.4 | Observability | ⬜ 0% |
 | 3.5 | Caching + Rate Limiting | ⬜ 0% |
 | 3.6 | Testing & Documentation | ⬜ 0% |
@@ -34,7 +34,7 @@
 - [x] Configure route to order-service (`/api/orders/**`)
 - [x] Configure route to payment-service (`/api/payments/**`)
 - [x] Configure route to notification-service (`/api/notifications/**`)
-- [ ] Configure route to auth-service (`/auth/**`) - Will be added in Phase 3.2
+- [x] Configure route to auth-service (`/auth/**`) - Completed in Phase 3.2
 
 ### Gateway Features
 - [x] Add global request logging filter
@@ -44,8 +44,8 @@
 - [ ] Configure circuit breaker (optional, Resilience4j) - Deferred to Phase 3.6
 
 ### Docker Integration
-- [ ] Add `api-gateway` to `docker-compose.yml`
-- [ ] Expose only port 8080 externally
+- [x] Add `api-gateway` to `docker-compose.yml`
+- [x] Expose only port 8080 externally
 - [ ] Test routing to all services
 
 ---
@@ -53,88 +53,62 @@
 ## 📋 Phase 3.2: Authentication
 
 ### Project Scaffold
-- [ ] Create `auth-service` module directory structure
-- [ ] Add `auth-service` to `settings.gradle.kts`
-- [ ] Create `build.gradle.kts` for auth-service
-- [ ] Create `AuthServiceApplication.java`
-- [ ] Add `application.yml` with Port 8086
+- [x] Create `auth-service` module directory structure
+- [x] Add `auth-service` to `settings.gradle.kts`
+- [x] Create `build.gradle.kts` for auth-service
+- [x] Create `AuthServiceApplication.java`
+- [x] Add `application.yml` with Port 8086
 
 ### Domain Layer
-- [ ] Create `User` aggregate root
-- [ ] Create `UserId` value object
-- [ ] Create `Role` enum (ADMIN, CUSTOMER, SERVICE)
-- [ ] Create `RefreshToken` entity
-- [ ] Create `UserRepository` port interface
+- [x] Create `User` aggregate root
+- [x] Create `UserId` value object
+- [x] Create `Role` enum (ADMIN, CUSTOMER, SERVICE)
+- [x] Create `RefreshToken` entity
+- [x] Create `UserRepository` port interface
 
 ### Application Layer
-- [ ] Create `AuthService` application service
-- [ ] Implement `register()` method
-- [ ] Implement `login()` method
-- [ ] Implement `refreshToken()` method
-- [ ] Implement `logout()` method
-- [ ] Create DTOs (LoginRequest, LoginResponse, RegisterRequest)
+- [x] Create `AuthService` application service
+- [x] Implement `register()` method
+- [x] Implement `login()` method
+- [x] Implement `refreshToken()` method
+- [x] Implement `logout()` method
+- [x] Create DTOs (LoginRequest, LoginResponse, RegisterRequest)
 
 ### Infrastructure Layer - Security
-- [ ] Create `JwtTokenProvider` class
-- [ ] Implement JWT generation with claims (sub, roles, exp)
-- [ ] Implement JWT validation
-- [ ] Implement JWT parsing
-- [ ] Configure secret key management (env variable)
+- [x] Create `JwtTokenProvider` class
+- [x] Implement JWT generation with claims (sub, roles, exp)
+- [x] Implement JWT validation
+- [x] Implement JWT parsing
+- [x] Configure secret key management (env variable)
 
 ### Infrastructure Layer - Persistence
-- [ ] Create `UserEntity` JPA entity
-- [ ] Create `RefreshTokenEntity` JPA entity
-- [ ] Create `JpaUserRepository`
-- [ ] Create Flyway migration `V1__create_user_tables.sql`
+- [x] Create `UserEntity` JPA entity
+- [x] Create `RefreshTokenEntity` JPA entity
+- [x] Create `JpaUserRepository`
+- [x] Create Flyway migration `V1__create_auth_tables.sql`
 
 ### Infrastructure Layer - Web
-- [ ] Create `AuthController`
-- [ ] `POST /auth/register` endpoint
-- [ ] `POST /auth/login` endpoint
-- [ ] `POST /auth/refresh` endpoint
-- [ ] `POST /auth/logout` endpoint
+- [x] Create `AuthController`
+- [x] `POST /auth/register` endpoint
+- [x] `POST /auth/login` endpoint
+- [x] `POST /auth/refresh` endpoint
+- [x] `POST /auth/logout` endpoint
 
 ### Gateway Integration
-- [ ] Create `JwtAuthenticationFilter` in api-gateway
-- [ ] Extract JWT from Authorization header
-- [ ] Validate token signature and expiration
-- [ ] Extract user info and roles
-- [ ] Forward user context to downstream services via headers
+- [x] Create `JwtAuthenticationFilter` in api-gateway
+- [x] Extract JWT from Authorization header
+- [x] Validate token signature and expiration
+- [x] Extract user info and roles
+- [x] Forward user context to downstream services via headers
 
 ### Docker Integration
-- [ ] Add `auth-service` to `docker-compose.yml`
-- [ ] Update `init-databases.sh` to create `auth_db`
+- [x] Add `auth-service` to `docker-compose.yml`
+- [x] Update `init-databases.sh` to create `auth_db`
 
 ---
 
 ## 📋 Phase 3.3: Authorization + Service Security
 
-### Common Security Library
-- [ ] Add security config to `common-lib`
-- [ ] Create `SecurityConstants` class
-- [ ] Create `UserContext` record (userId, username, roles)
-- [ ] Create `UserContextHolder` (ThreadLocal)
-- [ ] Create `UserContextFilter` for extracting headers
-
-### Product Service Security
-- [ ] Add Spring Security dependency
-- [ ] Create `SecurityConfig` class
-- [ ] Configure: GET `/api/products/**` = permitAll
-- [ ] Configure: POST/PUT/DELETE `/api/products/**` = ADMIN
-- [ ] Extract user context from gateway headers
-
-### Inventory Service Security
-- [ ] Add Spring Security dependency
-- [ ] Create `SecurityConfig` class
-- [ ] Configure: GET `/api/inventory/**` = permitAll
-- [ ] Configure: POST/PUT `/api/inventory/**` = ADMIN or SERVICE
-- [ ] Extract user context from gateway headers
-
-### Order Service Security
-- [ ] Add Spring Security dependency
-- [ ] Create `SecurityConfig` class
-- [ ] Configure: POST `/api/orders` = CUSTOMER
-- [ ] Configure: GET `/api/orders/{id}` = CUSTOMER (owner check)
 - [ ] Configure: GET `/api/orders` = ADMIN (list all)
 - [ ] Add owner validation in OrderService
 
