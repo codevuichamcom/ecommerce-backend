@@ -107,6 +107,7 @@ services:
       - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
       - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - SPRING_REDIS_HOST=redis
     depends_on:
       - product-service
       - inventory-service
@@ -114,6 +115,7 @@ services:
       - payment-service
       - notification-service
       - auth-service
+      - redis
 
   # Auth Service
   auth-service:
@@ -154,8 +156,11 @@ services:
       - SPRING_DATASOURCE_PASSWORD=postgres
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
       - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - SPRING_REDIS_HOST=redis
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   # Inventory Service
