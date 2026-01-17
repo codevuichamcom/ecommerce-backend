@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_MULTIPLE_DATABASES: product_db,inventory_db,order_db,payment_db,notification_db
+      POSTGRES_MULTIPLE_DATABASES: product_db,inventory_db,order_db,payment_db,notification_db,auth_db
     ports:
       - "5432:5432"
     volumes:
@@ -91,6 +91,47 @@ services:
       KAFKA_CLUSTERS_0_NAME: ecommerce-local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    depends_on:
+      - product-service
+      - inventory-service
+      - order-service
+      - payment-service
+      - notification-service
+      - auth-service
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: auth-service
+    container_name: auth-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # Product Service
   product-service:

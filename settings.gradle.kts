@@ -4,6 +4,7 @@ rootProject.name = "ecommerce-backend"
 include(
     "common-lib",
     "api-gateway",
+    "auth-service",
     "product-service",
     "inventory-service",
     "order-service",
