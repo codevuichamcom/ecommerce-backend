@@ -21,9 +21,11 @@ We move beyond simple CRUD. This system handles failure scenarios, distributed t
 
 Dive deep into the engineering decisions:
 
-*   [**System Overview**](docs/architecture/system-overview.md) - The High Level Design (HLD) and Container Diagrams.
-*   [**Order Saga Flow**](docs/architecture/order-saga-flow.md) - How we coordinate Order, Inventory, and Payment services.
-*   [**Outbox Pattern**](docs/architecture/outbox-pattern.md) - How we solve the dual-write problem.
+*   [**System Overview**](docs/architecture/system-overview.md) - The High Level Design (HLD).
+*   [**Security Design**](docs/SECURITY.md) - Authentication, Authorization, and Rate Limiting.
+*   [**Observability**](docs/OBSERVABILITY.md) - Tracing, Metrics, and Centralized Logging.
+*   [**Order Saga Flow**](docs/architecture/order-saga-flow.md) - Distributed workflow coordination.
+*   [**Outbox Pattern**](docs/architecture/outbox-pattern.md) - Reliable event delivery.
 
 ---
 
@@ -74,11 +76,17 @@ Start the microservices (in separate terminals).
 
 | Service | Port | Responsibility |
 | :--- | :--- | :--- |
-| **Product Service** | `8081` | Catalog management, Price lookups. |
+| **API Gateway** | `8080` | Entry point, Auth Validation, Rate Limiting. |
+| **Auth Service** | `8086` | User Identity, JWT Issuer, RBAC. |
+| **Product Service** | `8081` | Catalog management, Price lookups (Redis Cached). |
 | **Inventory Service** | `8082` | Stock management, Optimistic reservation. |
 | **Order Service** | `8083` | Process Orchestrator (Saga), State machine. |
 | **Payment Service** | `8084` | Payment processing gateway. |
 | **Notification** | `8085` | Email & Push notification handler. |
+| **Zipkin** | `9411` | Distributed Tracing UI. |
+| **Prometheus** | `9090` | Metrics collection engine. |
+| **Grafana** | `3000` | Monitoring dashboards. |
+| **Kafka UI** | `8090` | Event stream visualization. |
 
 ---
 
@@ -100,14 +108,16 @@ We take quality seriously.
 
 ```
 ecommerce-backend/
-├── common-lib/             # Shared Domain Events, Exception Handling, Outbox Logic
+├── common-lib/             # Shared Domain, Security, Outbox Logic
+├── api-gateway/            # Gatekeeper (Rate Limiting, Auth Filter)
+├── auth-service/           # Identity Management
 ├── product-service/        # Domain: Catalog
 ├── inventory-service/      # Domain: Stock
 ├── order-service/          # Domain: Order Lifecycle (The brain)
 ├── payment-service/        # Domain: Finance
 ├── notification-service/   # Domain: Communication
-├── docker/                 # Infrastructure as Code
-└── docs/                   # Architecture & Design Docs
+├── docker/                 # Infrastructure (Compose, Config)
+└── docs/                   # Engineering Documentation
 ```
 
 ---

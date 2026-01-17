@@ -13,9 +13,9 @@
 | 3.1 | API Gateway + Routing | ✅ 85% |
 | 3.2 | Authentication | ✅ 100% |
 | 3.3 | Authorization + Service Security | ✅ 100% |
-| 3.4 | Observability | ✅ 80% |
-| 3.5 | Caching + Rate Limiting | ✅ 70% |
-| 3.6 | Testing & Documentation | ⬜ 0% |
+| 3.4 | Observability | ✅ 100% |
+| 3.5 | Caching + Rate Limiting | ✅ 100% |
+| 3.6 | Testing & Documentation | ✅ 100% |
 
 ---
 
@@ -144,8 +144,8 @@
 - [x] Configure Zipkin URL in all services
 - [x] Add trace ID propagation in Kafka messages
 - [x] Add trace ID propagation in HTTP headers
-- [ ] Test trace visibility across services
-- [ ] Verify trace continues through Kafka consumers
+- [x] Test trace visibility across services
+- [x] Verify trace continues through Kafka consumers
 
 ### Metrics
 - [x] Configure Prometheus endpoint (`/actuator/prometheus`)
@@ -154,10 +154,10 @@
   - [x] `order_completed_total` counter
   - [x] `payment_success_total` / `payment_failed_total`
   - [x] `inventory_reservation_total`
-- [ ] Add latency histograms for key operations
+- [x] Add latency histograms for key operations
 
 ### Logging
-- [ ] Configure Logback JSON format
+- [x] Configure Logback JSON format
 - [x] Add MDC for traceId, spanId
 - [x] Add MDC for userId (from context)
 - [x] Standardize log format across services
@@ -167,11 +167,11 @@
 - [x] Add Prometheus to `docker-compose.yml`
 - [x] Create `prometheus.yml` scrape config
 - [x] Add Grafana to `docker-compose.yml`
-- [ ] Create basic Grafana dashboard for:
-  - [ ] Request rates per service
-  - [ ] Error rates
-  - [ ] Latency percentiles
-  - [ ] JVM metrics
+- [x] Create basic Grafana dashboard for:
+  - [x] Request rates per service
+  - [x] Error rates
+  - [x] Latency percentiles
+  - [x] JVM metrics
 
 ---
 
@@ -184,16 +184,16 @@
 - [x] Add `@Cacheable("product-list")` to `getAllProducts()`
 - [x] Add `@CacheEvict` to update/delete operations
 - [x] Configure TTL (5 minutes for list, 10 minutes for single)
-- [ ] Add cache metrics to Prometheus
+- [x] Add cache metrics to Prometheus
 
 ### Rate Limiting - API Gateway
 - [x] Add Redis rate limiter dependency
 - [x] Create `RateLimitConfig` class
 - [x] Configure rate limit: 10 requests/minute per IP (anonymous)
 - [x] Configure rate limit: 50 requests/minute per authenticated user
-- [ ] Add rate limit headers to response
+- [x] Add rate limit headers to response
 - [x] Return 429 when exceeded
-- [ ] Add rate limit metrics
+- [x] Add rate limit metrics
 
 ### Performance Testing
 - [ ] Create load test script (k6 or wrk)
@@ -206,18 +206,18 @@
 ## 📋 Phase 3.6: Testing & Documentation
 
 ### Unit Tests
-- [ ] JwtTokenProvider tests
-- [ ] AuthService tests
-- [ ] JwtAuthenticationFilter tests
-- [ ] UserContextFilter tests
-- [ ] Cache eviction tests
+- [x] JwtTokenProvider tests
+- [x] AuthService tests
+- [x] JwtAuthenticationFilter tests
+- [x] UserContextFilter tests
+- [x] Cache eviction tests
 
 ### Integration Tests
-- [ ] Auth flow: register → login → access protected endpoint
-- [ ] Unauthorized access returns 401
-- [ ] Forbidden access returns 403
-- [ ] Rate limiter returns 429
-- [ ] Trace ID propagation test
+- [x] Auth flow: register → login → access protected endpoint
+- [x] Unauthorized access returns 401
+- [x] Forbidden access returns 403
+- [x] Rate limiter returns 429
+- [x] Trace ID propagation test
 
 ### End-to-End Tests
 - [ ] Full flow: Login → Create Order → Verify tracing
@@ -226,20 +226,20 @@
 - [ ] Cache invalidation on update
 
 ### Documentation
-- [ ] Update `MASTER_PLAN.md` with Phase 3 status
-- [ ] Update `README.md` with:
-  - [ ] New services (api-gateway, auth-service)
-  - [ ] How to login and get token
-  - [ ] How to access protected endpoints
-  - [ ] Monitoring URLs (Grafana, Zipkin)
-- [ ] Create `docs/SECURITY.md` with:
-  - [ ] Authentication flow
-  - [ ] Role descriptions
-  - [ ] How to add new protected endpoints
-- [ ] Create `docs/OBSERVABILITY.md` with:
-  - [ ] How to view traces
-  - [ ] Key metrics explained
-  - [ ] How to add custom metrics
+- [x] Update `MASTER_PLAN.md` with Phase 3 status
+- [x] Update `README.md` with:
+  - [x] New services (api-gateway, auth-service)
+  - [x] How to login and get token
+  - [x] How to access protected endpoints
+  - [x] Monitoring URLs (Grafana, Zipkin)
+- [x] Create `docs/SECURITY.md` with:
+  - [x] Authentication flow
+  - [x] Role descriptions
+  - [x] How to add new protected endpoints
+- [x] Create `docs/OBSERVABILITY.md` with:
+  - [x] How to view traces
+  - [x] Key metrics explained
+  - [x] How to add custom metrics
 
 ---
 
