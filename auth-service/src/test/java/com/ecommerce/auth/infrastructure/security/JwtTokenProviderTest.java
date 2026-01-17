@@ -1,12 +1,9 @@
 package com.ecommerce.auth.infrastructure.security;
 
 import com.ecommerce.common.security.Role;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
