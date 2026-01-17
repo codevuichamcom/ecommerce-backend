@@ -14,7 +14,7 @@
 | 3.2 | Authentication | ✅ 100% |
 | 3.3 | Authorization + Service Security | ✅ 100% |
 | 3.4 | Observability | ✅ 80% |
-| 3.5 | Caching + Rate Limiting | ⬜ 0% |
+| 3.5 | Caching + Rate Limiting | ✅ 70% |
 | 3.6 | Testing & Documentation | ⬜ 0% |
 
 ---
@@ -178,21 +178,21 @@
 ## 📋 Phase 3.5: Caching + Rate Limiting
 
 ### Redis Caching - Product Service
-- [ ] Add Spring Cache + Redis dependencies
-- [ ] Create `CacheConfig` class
-- [ ] Add `@Cacheable("products")` to `getProductById()`
-- [ ] Add `@Cacheable("product-list")` to `getAllProducts()`
-- [ ] Add `@CacheEvict` to update/delete operations
-- [ ] Configure TTL (5 minutes for list, 10 minutes for single)
+- [x] Add Spring Cache + Redis dependencies
+- [x] Create `CacheConfig` class
+- [x] Add `@Cacheable("products")` to `getProductById()`
+- [x] Add `@Cacheable("product-list")` to `getAllProducts()`
+- [x] Add `@CacheEvict` to update/delete operations
+- [x] Configure TTL (5 minutes for list, 10 minutes for single)
 - [ ] Add cache metrics to Prometheus
 
 ### Rate Limiting - API Gateway
-- [ ] Add Redis rate limiter dependency
-- [ ] Create `RateLimitConfig` class
-- [ ] Configure rate limit: 100 requests/minute per IP
-- [ ] Configure rate limit: 1000 requests/minute per authenticated user
+- [x] Add Redis rate limiter dependency
+- [x] Create `RateLimitConfig` class
+- [x] Configure rate limit: 10 requests/minute per IP (anonymous)
+- [x] Configure rate limit: 50 requests/minute per authenticated user
 - [ ] Add rate limit headers to response
-- [ ] Return 429 when exceeded
+- [x] Return 429 when exceeded
 - [ ] Add rate limit metrics
 
 ### Performance Testing

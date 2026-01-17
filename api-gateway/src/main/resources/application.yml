@@ -37,6 +37,13 @@ spring:
         locator:
           enabled: false
 
+  # Redis
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+
 # Server configuration
 server:
   port: 8080

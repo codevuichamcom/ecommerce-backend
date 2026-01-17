@@ -1,9 +1,12 @@
 package com.ecommerce.gateway.config;
 
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Route Configuration for API Gateway.
@@ -20,7 +23,12 @@ import org.springframework.context.annotation.Configuration;
  * @version 1.0.0
  */
 @Configuration
+@RequiredArgsConstructor
 public class RouteConfig {
+
+        private final RedisRateLimiter userRateLimiter;
+        private final RedisRateLimiter anonymousRateLimiter;
+        private final KeyResolver userKeyResolver;
 
         @Bean
         public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -28,6 +36,9 @@ public class RouteConfig {
                                 // Product Service routes
                                 .route("product-service", r -> r
                                                 .path("/api/products/**")
+                                                .filters(f -> f.requestRateLimiter(c -> c
+                                                                .setRateLimiter(userRateLimiter)
+                                                                .setKeyResolver(userKeyResolver)))
                                                 .uri("http://localhost:8081"))
 
                                 // Inventory Service routes
@@ -38,11 +49,17 @@ public class RouteConfig {
                                 // Order Service routes
                                 .route("order-service", r -> r
                                                 .path("/api/orders/**")
+                                                .filters(f -> f.requestRateLimiter(c -> c
+                                                                .setRateLimiter(userRateLimiter)
+                                                                .setKeyResolver(userKeyResolver)))
                                                 .uri("http://localhost:8083"))
 
                                 // Payment Service routes
                                 .route("payment-service", r -> r
                                                 .path("/api/payments/**")
+                                                .filters(f -> f.requestRateLimiter(c -> c
+                                                                .setRateLimiter(anonymousRateLimiter)
+                                                                .setKeyResolver(userKeyResolver)))
                                                 .uri("http://localhost:8084"))
 
                                 // Notification Service routes
@@ -53,6 +70,9 @@ public class RouteConfig {
                                 // Auth Service routes
                                 .route("auth-service", r -> r
                                                 .path("/auth/**")
+                                                .filters(f -> f.requestRateLimiter(c -> c
+                                                                .setRateLimiter(anonymousRateLimiter)
+                                                                .setKeyResolver(userKeyResolver)))
                                                 .uri("http://localhost:8086"))
 
                                 // Health check aggregation - forward to individual services

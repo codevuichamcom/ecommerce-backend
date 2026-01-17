@@ -9,6 +9,9 @@ import com.ecommerce.product.domain.model.Money;
 import com.ecommerce.product.domain.model.Product;
 import com.ecommerce.product.domain.model.ProductId;
 import com.ecommerce.product.domain.repository.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +34,7 @@ public class ProductService {
     /**
      * Create a new product.
      */
+    @CacheEvict(value = "product-list", allEntries = true)
     public ProductResponse createProduct(CreateProductCommand command) {
         // Check for duplicate SKU
         if (productRepository.existsBySku(command.sku())) {
@@ -53,6 +57,7 @@ public class ProductService {
      * Get product by ID.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "products", key = "#id")
     public ProductResponse getProduct(String id) {
         var product = findProductOrThrow(id);
         return ProductResponse.from(product);
@@ -62,6 +67,7 @@ public class ProductService {
      * Get all products.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "product-list")
     public List<ProductResponse> getAllProducts() {
         return productRepository.findAll().stream()
                 .map(ProductResponse::from)
@@ -71,6 +77,10 @@ public class ProductService {
     /**
      * Update product details.
      */
+    @Caching(evict = {
+            @CacheEvict(value = "products", key = "#id"),
+            @CacheEvict(value = "product-list", allEntries = true)
+    })
     public ProductResponse updateProduct(String id, UpdateProductCommand command) {
         var product = findProductOrThrow(id);
 
@@ -84,6 +94,10 @@ public class ProductService {
     /**
      * Activate a product.
      */
+    @Caching(evict = {
+            @CacheEvict(value = "products", key = "#id"),
+            @CacheEvict(value = "product-list", allEntries = true)
+    })
     public ProductResponse activateProduct(String id) {
         var product = findProductOrThrow(id);
         product.activate();
@@ -94,6 +108,10 @@ public class ProductService {
     /**
      * Deactivate a product.
      */
+    @Caching(evict = {
+            @CacheEvict(value = "products", key = "#id"),
+            @CacheEvict(value = "product-list", allEntries = true)
+    })
     public ProductResponse deactivateProduct(String id) {
         var product = findProductOrThrow(id);
         product.deactivate();
@@ -104,6 +122,10 @@ public class ProductService {
     /**
      * Discontinue a product.
      */
+    @Caching(evict = {
+            @CacheEvict(value = "products", key = "#id"),
+            @CacheEvict(value = "product-list", allEntries = true)
+    })
     public ProductResponse discontinueProduct(String id) {
         var product = findProductOrThrow(id);
         product.discontinue();
@@ -114,6 +136,10 @@ public class ProductService {
     /**
      * Delete a product.
      */
+    @Caching(evict = {
+            @CacheEvict(value = "products", key = "#id"),
+            @CacheEvict(value = "product-list", allEntries = true)
+    })
     public void deleteProduct(String id) {
         var productId = new ProductId(id);
         if (productRepository.findById(productId).isEmpty()) {
