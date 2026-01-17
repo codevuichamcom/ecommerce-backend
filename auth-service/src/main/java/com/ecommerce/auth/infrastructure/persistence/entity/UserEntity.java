@@ -1,6 +1,6 @@
 package com.ecommerce.auth.infrastructure.persistence.entity;
 
-import com.ecommerce.auth.domain.model.Role;
+import com.ecommerce.common.security.Role;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;

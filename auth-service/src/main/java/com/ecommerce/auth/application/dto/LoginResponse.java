@@ -1,6 +1,6 @@
 package com.ecommerce.auth.application.dto;
 
-import com.ecommerce.auth.domain.model.Role;
+import com.ecommerce.common.security.Role;
 
 import java.util.Set;
 
@@ -11,12 +11,12 @@ import java.util.Set;
  * @version 1.0.0
  */
 public record LoginResponse(
-        String accessToken,
-        String refreshToken,
-        String userId,
-        String username,
-        String email,
-        Set<Role> roles,
-        long expiresIn // seconds
+                String accessToken,
+                String refreshToken,
+                String userId,
+                String username,
+                String email,
+                Set<Role> roles,
+                long expiresIn // seconds
 ) {
 }
