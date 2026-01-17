@@ -41,6 +41,7 @@ public class RefreshPersistenceAdapter implements RefreshTokenRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<RefreshToken> findById(UUID id) {
         return jpaRefreshTokenRepository.findById(id).map(this::toDomain);
     }
