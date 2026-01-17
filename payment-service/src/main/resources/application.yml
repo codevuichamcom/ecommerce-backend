@@ -33,14 +33,14 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       properties:
-        spring.json.trusted.packages: com.ecommerce.common.events
+        "[spring.json.trusted.packages]": com.ecommerce.common.events
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
       retries: 3
       properties:
-        enable.idempotence: true
+        "[enable.idempotence]": true
     template:
       observation-enabled: true
     listener:
@@ -86,5 +86,5 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}] %logger{36} - %msg%n"
   level:
-    com.ecommerce.payment: DEBUG
-    org.springframework.kafka: INFO
+    "[com.ecommerce.payment]": DEBUG
+    "[org.springframework.kafka]": INFO

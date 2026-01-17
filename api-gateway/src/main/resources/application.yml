@@ -66,9 +66,9 @@ management:
       enabled: true
     readinessState:
       enabled: true
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     sampling:
@@ -81,7 +81,7 @@ management:
 logging:
   level:
     root: INFO
-    com.ecommerce.gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
+    "[com.ecommerce.gateway]": DEBUG
+    "[org.springframework.cloud.gateway]": DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}] %logger{36} - %msg%n"

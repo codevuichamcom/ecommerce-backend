@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.lang.NonNull;
+
 /**
  * Servlet filter for extracting user context from request headers and
  * populating Spring Security Context.
@@ -30,9 +32,9 @@ public class UserContextFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(UserContextFilter.class);
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String userId = request.getHeader(SecurityConstants.HEADER_USER_ID);
         String username = request.getHeader(SecurityConstants.HEADER_USER_NAME);

@@ -8,7 +8,6 @@ import com.ecommerce.auth.infrastructure.persistence.repository.JpaUserRepositor
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Persistence adapter for User.
