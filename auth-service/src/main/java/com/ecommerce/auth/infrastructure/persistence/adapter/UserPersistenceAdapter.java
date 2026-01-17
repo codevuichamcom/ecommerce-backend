@@ -26,6 +26,7 @@ public class UserPersistenceAdapter implements UserRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public User save(User user) {
         UserEntity entity = toEntity(user);
         UserEntity savedEntity = jpaUserRepository.save(entity);
@@ -33,16 +34,19 @@ public class UserPersistenceAdapter implements UserRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<User> findById(UserId id) {
         return jpaUserRepository.findById(id.value()).map(this::toDomain);
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<User> findByUsername(String username) {
         return jpaUserRepository.findByUsername(username).map(this::toDomain);
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<User> findByEmail(String email) {
         return jpaUserRepository.findByEmail(email).map(this::toDomain);
     }
@@ -58,6 +62,7 @@ public class UserPersistenceAdapter implements UserRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public void deleteById(UserId id) {
         jpaUserRepository.deleteById(id.value());
     }

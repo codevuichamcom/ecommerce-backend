@@ -24,4 +24,4 @@ management:
 logging:
   level:
     root: WARN
-    com.ecommerce.gateway: INFO
+    "[com.ecommerce.gateway]": INFO

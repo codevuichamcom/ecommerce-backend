@@ -38,6 +38,7 @@ class UserContextFilterTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldPopulateContext_WhenHeadersArePresent() throws Exception {
         // Given
         when(request.getHeader(SecurityConstants.HEADER_USER_ID)).thenReturn("user123");
@@ -74,6 +75,7 @@ class UserContextFilterTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldClearContext_AfterRequestIsProcessed() throws Exception {
         // Given
         when(request.getHeader(SecurityConstants.HEADER_USER_ID)).thenReturn("user123");
@@ -91,6 +93,7 @@ class UserContextFilterTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldNotPopulateContext_WhenHeadersAreMissing() throws Exception {
         // Given
         when(request.getHeader(SecurityConstants.HEADER_USER_ID)).thenReturn(null);
