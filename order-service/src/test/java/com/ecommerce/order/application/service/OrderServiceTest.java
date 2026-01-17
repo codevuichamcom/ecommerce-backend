@@ -41,6 +41,9 @@ class OrderServiceTest {
         @Mock
         private com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher;
 
+        @Mock
+        private io.micrometer.core.instrument.MeterRegistry meterRegistry;
+
         @InjectMocks
         private OrderService orderService;
 

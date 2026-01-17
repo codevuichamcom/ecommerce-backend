@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -60,6 +61,12 @@ public class UserContextFilter extends OncePerRequestFilter {
 
             SecurityContextHolder.getContext().setAuthentication(auth);
 
+            // Add to MDC for logging correlation
+            MDC.put("userId", userId);
+            if (username != null) {
+                MDC.put("username", username);
+            }
+
             logger.debug("UserContext set for user: {}, roles: {}", username, roles);
         }
 
@@ -68,6 +75,8 @@ public class UserContextFilter extends OncePerRequestFilter {
         } finally {
             UserContextHolder.clear();
             SecurityContextHolder.clearContext();
+            MDC.remove("userId");
+            MDC.remove("username");
         }
     }
 }

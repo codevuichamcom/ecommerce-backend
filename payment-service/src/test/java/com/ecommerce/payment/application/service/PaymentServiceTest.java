@@ -33,6 +33,9 @@ class PaymentServiceTest {
     @Mock
     private OutboxEventPublisher outboxEventPublisher;
 
+    @Mock
+    private io.micrometer.core.instrument.MeterRegistry meterRegistry;
+
     @InjectMocks
     private PaymentService paymentService;
 

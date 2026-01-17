@@ -13,7 +13,7 @@
 | 3.1 | API Gateway + Routing | ✅ 85% |
 | 3.2 | Authentication | ✅ 100% |
 | 3.3 | Authorization + Service Security | ✅ 100% |
-| 3.4 | Observability | ⬜ 0% |
+| 3.4 | Observability | ✅ 80% |
 | 3.5 | Caching + Rate Limiting | ⬜ 0% |
 | 3.6 | Testing & Documentation | ⬜ 0% |
 
@@ -135,38 +135,38 @@
 ## 📋 Phase 3.4: Observability
 
 ### Dependencies Setup
-- [ ] Add Micrometer Tracing to root `build.gradle.kts`
-- [ ] Add Zipkin reporter dependency
-- [ ] Add Prometheus registry dependency
-- [ ] Verify all services pick up dependencies
+- [x] Add Micrometer Tracing to root `build.gradle.kts`
+- [x] Add Zipkin reporter dependency
+- [x] Add Prometheus registry dependency
+- [x] Verify all services pick up dependencies
 
 ### Distributed Tracing
-- [ ] Configure Zipkin URL in all services
-- [ ] Add trace ID propagation in Kafka messages
-- [ ] Add trace ID propagation in HTTP headers
+- [x] Configure Zipkin URL in all services
+- [x] Add trace ID propagation in Kafka messages
+- [x] Add trace ID propagation in HTTP headers
 - [ ] Test trace visibility across services
 - [ ] Verify trace continues through Kafka consumers
 
 ### Metrics
-- [ ] Configure Prometheus endpoint (`/actuator/prometheus`)
-- [ ] Add custom business metrics:
-  - [ ] `order_created_total` counter
-  - [ ] `order_completed_total` counter
-  - [ ] `payment_success_total` / `payment_failed_total`
-  - [ ] `inventory_reservation_total`
+- [x] Configure Prometheus endpoint (`/actuator/prometheus`)
+- [x] Add custom business metrics:
+  - [x] `order_created_total` counter
+  - [x] `order_completed_total` counter
+  - [x] `payment_success_total` / `payment_failed_total`
+  - [x] `inventory_reservation_total`
 - [ ] Add latency histograms for key operations
 
 ### Logging
 - [ ] Configure Logback JSON format
-- [ ] Add MDC for traceId, spanId
-- [ ] Add MDC for userId (from context)
-- [ ] Standardize log format across services
+- [x] Add MDC for traceId, spanId
+- [x] Add MDC for userId (from context)
+- [x] Standardize log format across services
 
 ### Infrastructure
-- [ ] Add Zipkin to `docker-compose.yml`
-- [ ] Add Prometheus to `docker-compose.yml`
-- [ ] Create `prometheus.yml` scrape config
-- [ ] Add Grafana to `docker-compose.yml`
+- [x] Add Zipkin to `docker-compose.yml`
+- [x] Add Prometheus to `docker-compose.yml`
+- [x] Create `prometheus.yml` scrape config
+- [x] Add Grafana to `docker-compose.yml`
 - [ ] Create basic Grafana dashboard for:
   - [ ] Request rates per service
   - [ ] Error rates

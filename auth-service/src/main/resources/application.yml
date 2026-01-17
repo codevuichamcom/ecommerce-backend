@@ -46,4 +46,5 @@ management:
 
 logging:
   pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}] %logger{36} - %msg%n"
     level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
