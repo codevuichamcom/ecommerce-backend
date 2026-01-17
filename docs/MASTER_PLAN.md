@@ -26,13 +26,13 @@ Modern e-commerce backend built with **Java 21** and **Spring Boot 3.5.9** follo
 
 ### Services
 ```
-api-gateway          (Phase 3)
-auth-service         (Phase 3)
-product-service      ✅ Implemented
-inventory-service    ✅ Implemented
-order-service        ✅ Implemented
-payment-service      (Phase 2)
-notification-service (Phase 2)
+api-gateway          🔜 Phase 3
+auth-service         🔜 Phase 3
+product-service      ✅ Port 8081
+inventory-service    ✅ Port 8082
+order-service        ✅ Port 8083
+payment-service      ✅ Port 8084
+notification-service ✅ Port 8085
 ```
 
 ---
@@ -46,8 +46,12 @@ notification-service (Phase 2)
 | Build | Gradle 8.12 (Kotlin DSL) |
 | Database | PostgreSQL 16 |
 | Cache | Redis 7 |
-| Messaging | Kafka (Phase 2) |
+| Messaging | Apache Kafka 7.5 |
 | Migration | Flyway |
+| Gateway | Spring Cloud Gateway (Phase 3) |
+| Security | JWT + Spring Security (Phase 3) |
+| Tracing | Micrometer Tracing + Zipkin (Phase 3) |
+| Metrics | Prometheus + Grafana (Phase 3) |
 
 ---
 
@@ -103,12 +107,38 @@ notification-service (Phase 2)
 
 ## 🏢 Phase 3: Enterprise Level
 
-### Topics
-- JWT + OAuth2 authentication
-- API Gateway with rate limiting
-- Virtual Threads vs Thread Pool benchmarks
-- Redis caching
-- Observability (tracing, metrics)
+### New Services
+- `api-gateway` (Port 8080) - Single entry point, routing, rate limiting
+- `auth-service` (Port 8086) - JWT authentication, user management
+
+### Core Features
+1. **API Gateway** (Spring Cloud Gateway)
+   - Central routing to all services
+   - JWT validation at gateway level
+   - Rate limiting (Redis-backed)
+   - Request/response logging
+
+2. **Authentication** (JWT-based, simplified)
+   - Login → JWT access token + refresh token
+   - Role-based access (ADMIN, CUSTOMER, SERVICE)
+   - No full OAuth2 server (avoid over-engineering)
+
+3. **Observability**
+   - Distributed tracing (Micrometer Tracing + Zipkin)
+   - Metrics (Micrometer + Prometheus + Grafana)
+   - Structured JSON logging with correlation IDs
+
+4. **Caching**
+   - Redis cache for product catalog
+   - @Cacheable annotations
+
+### Out of Scope (Keep Simple)
+- ❌ Service Mesh (Istio) - overkill for 7 services
+- ❌ Full OAuth2 Authorization Server - JWT đủ dùng
+- ❌ ELK Stack - Grafana Loki nếu cần sau
+- ❌ mTLS everywhere - chỉ production
+
+See [PHASE3_IMPLEMENTATION_PLAN.md](./PHASE3_IMPLEMENTATION_PLAN.md) for details.
 
 ---
 
@@ -117,12 +147,19 @@ notification-service (Phase 2)
 ```
 ecommerce-backend/
 ├── common-lib/           # Shared code
+├── api-gateway/          # Port 8080 (Phase 3)
+├── auth-service/         # Port 8086 (Phase 3)
 ├── product-service/      # Port 8081
 ├── inventory-service/    # Port 8082
 ├── order-service/        # Port 8083
-├── docker/               # Infrastructure
-├── docs/                 # Documentation
-└── build.gradle.kts      # Root build
+├── payment-service/      # Port 8084 (Phase 2)
+├── notification-service/ # Port 8085 (Phase 2)
+├── docker/
+│   ├── docker-compose.yml
+│   ├── prometheus/       # Phase 3
+│   └── grafana/          # Phase 3
+├── docs/
+└── build.gradle.kts
 ```
 
 ---
