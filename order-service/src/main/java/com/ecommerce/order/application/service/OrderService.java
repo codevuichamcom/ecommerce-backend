@@ -9,6 +9,7 @@ import com.ecommerce.order.domain.model.*;
 import com.ecommerce.order.domain.repository.OrderRepository;
 import com.ecommerce.order.domain.saga.OrderSaga;
 import com.ecommerce.order.domain.saga.OrderSagaRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -31,15 +32,18 @@ public class OrderService {
     private final ProductServicePort productService;
     private final OrderSagaRepository sagaRepository;
     private final com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher;
+    private final MeterRegistry meterRegistry;
 
     public OrderService(OrderRepository orderRepository,
             ProductServicePort productService,
             OrderSagaRepository sagaRepository,
-            com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher) {
+            com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher,
+            MeterRegistry meterRegistry) {
         this.orderRepository = orderRepository;
         this.productService = productService;
         this.sagaRepository = sagaRepository;
         this.outboxEventPublisher = outboxEventPublisher;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -90,6 +94,9 @@ public class OrderService {
 
         // 5. Publish OrderCreated event via Outbox
         publishOrderCreatedEvent(savedOrder);
+
+        // 6. Metrics
+        meterRegistry.counter("order_created_total").increment();
 
         log.info("Order creation initiated: {} for customer {}",
                 orderId.value(), command.customerId());

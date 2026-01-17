@@ -37,6 +37,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
 
   # Email configuration (mock for now)
   mail:
@@ -61,12 +65,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus,tracing
   endpoint:
     health:
       show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}] %logger{36} - %msg%n"
   level:
     "[com.ecommerce.notification]": DEBUG
     "[org.springframework.kafka]": INFO

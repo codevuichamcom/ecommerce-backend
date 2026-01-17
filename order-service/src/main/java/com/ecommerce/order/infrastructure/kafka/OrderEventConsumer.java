@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ public class OrderEventConsumer {
     private final OrderRepository orderRepository;
     private final com.ecommerce.common.outbox.OutboxEventPublisher outboxEventPublisher;
     private final ProcessedEventJpaRepository processedEventRepository;
+    private final MeterRegistry meterRegistry;
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "${app.kafka.topics.inventory-events:inventory-events}", groupId = "order-service")
@@ -142,6 +144,9 @@ public class OrderEventConsumer {
 
                 // Publish OrderConfirmed event
                 publishOrderConfirmed(order);
+
+                // Metrics
+                meterRegistry.counter("order_completed_total").increment();
             });
         });
     }

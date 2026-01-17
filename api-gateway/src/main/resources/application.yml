@@ -68,7 +68,7 @@ management:
       probability: 1.0  # 100% sampling for development
   zipkin:
     tracing:
-      endpoint: http://localhost:9411/api/v2/spans
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 # Logging configuration
 logging:
@@ -77,4 +77,4 @@ logging:
     com.ecommerce.gateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}] %logger{36} - %msg%n"

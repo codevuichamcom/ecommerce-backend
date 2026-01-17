@@ -9,6 +9,7 @@ import com.ecommerce.payment.application.dto.ProcessPaymentCommand;
 import com.ecommerce.payment.domain.model.Payment;
 import com.ecommerce.payment.domain.model.PaymentId;
 import com.ecommerce.payment.domain.repository.PaymentRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OutboxEventPublisher outboxEventPublisher;
+    private final MeterRegistry meterRegistry;
     private final Random random = new Random();
 
     @Value("${payment.processing.delay-ms:500}")
@@ -42,9 +44,11 @@ public class PaymentService {
 
     public PaymentService(
             PaymentRepository paymentRepository,
-            OutboxEventPublisher outboxEventPublisher) {
+            OutboxEventPublisher outboxEventPublisher,
+            MeterRegistry meterRegistry) {
         this.paymentRepository = paymentRepository;
         this.outboxEventPublisher = outboxEventPublisher;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -124,6 +128,9 @@ public class PaymentService {
                 transactionId);
         outboxEventPublisher.publish(AGGREGATE_TYPE, payment.getId().value(), event);
 
+        // Metrics
+        meterRegistry.counter("payment_success_total").increment();
+
         return payment;
     }
 
@@ -143,6 +150,9 @@ public class PaymentService {
                 reason,
                 errorCode);
         outboxEventPublisher.publish(AGGREGATE_TYPE, payment.getId().value(), event);
+
+        // Metrics
+        meterRegistry.counter("payment_failed_total", "reason", reason).increment();
 
         return payment;
     }
