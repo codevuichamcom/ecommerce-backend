@@ -28,6 +28,7 @@ public class RefreshPersistenceAdapter implements RefreshTokenRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
     public RefreshToken save(RefreshToken token) {
         RefreshTokenEntity entity = toEntity(token);
         RefreshTokenEntity savedEntity = jpaRefreshTokenRepository.save(entity);
