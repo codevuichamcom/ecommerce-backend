@@ -39,7 +39,8 @@ description: Refactoring workflow - behavior must not change
 - ✅ "If it's hard to test, it's hard to refactor. Fix testing first."
 
 ## Checklist
-- [ ] Existing test coverage verified (≥70%)
+- [ ] Code smell identified and documented
+- [ ] Existing test coverage verified (Service ≥70%, Domain ≥80%)
 - [ ] Refactor plan documented & approved (if large)
 - [ ] Refactoring done in small, incremental steps
 - [ ] Tests passed after each step

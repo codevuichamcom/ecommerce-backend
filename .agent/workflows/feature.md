@@ -18,17 +18,16 @@ This workflow guides the development of new features in the ecommerce-backend mi
 - Review relevant documentation in `docs/`
 
 ### 2. Propose Architecture
-- Design domain model changes (entities, value objects, events)
-- Define API contracts if creating new endpoints
+- **Design domain model**: Entities, Value Objects, Aggregates
+- **Define API contracts**:
+  - REST endpoints
   - Request/Response DTOs
-  - HTTP methods and paths
   - Error responses
 - Identify events/messages needed for Kafka
 - Determine if Saga pattern is required
-### 6. Feature Flags (Optional)
-- **When to use**: Gradual rollout, A/B testing, or risky features.
-- **Guide**: [../templates/feature_flag_guide.md](../templates/feature_flag_guide.md)
-- **Cleanup**: Remove flags after 2 sprints of 100% rollout.
+- **Feature Flags** (if needed): For gradual rollout, A/B testing, or risky features
+  - Guide: [../templates/feature_flag_guide.md](../templates/feature_flag_guide.md)
+  - Cleanup: Remove flags after 2 sprints of 100% rollout
 - Document design in `docs/` folder
 
 ### 3. Human Review ⏸️

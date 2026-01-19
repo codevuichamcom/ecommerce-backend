@@ -8,6 +8,10 @@ api:
     strategy: URI_versioning
     format: "/api/v{number}/..."
     deprecation_policy: "Maintain at least 1 previous version for 6 months"
+    deprecation_notification:
+      - Sunset_header: "Sunset: Sat, 31 Dec 2026 23:59:59 GMT"
+      - API_documentation: "Mark as deprecated with migration guide"
+      - Email_notification: "Notify consumers 90 days before sunset"
 
   naming_conventions:
     endpoints: kebab-case
