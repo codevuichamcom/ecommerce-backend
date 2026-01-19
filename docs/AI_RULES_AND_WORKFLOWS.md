@@ -24,16 +24,16 @@ Tài liệu này tổng hợp toàn bộ **Rules** (Quy tắc), **Workflows** (Q
 
 ## 📐 Rules (10 quy tắc chi tiết)
 
-1. **Git & Branching**: Git Flow, Conventional Commits. ([git.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/git.yaml))
-2. **CI/CD Pipeline**: Build, scan, Canary deployment. ([ci_cd.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/ci_cd.yaml))
-3. **Observability**: Metrics, JSON logs, Micrometer Tracing. ([observability.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/observability.yaml))
-4. **API Design**: RESTful, RFC 7807, Idempotency. ([api.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/api.yaml))
-5. **Security**: JWT, AWS Secrets, Snyk scans. ([security.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/security.yaml))
-6. **Testing**: JUnit 5, JaCoCo, Testcontainers. ([testing.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/testing.yaml))
-7. **Messaging**: Kafka, Outbox, Saga, Avro. ([messaging.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/messaging.yaml))
-8. **Architecture**: Hexagonal + DDD-lite. ([architecture.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/architecture.yaml))
-9. **Database**: PostgreSQL 16, Flyway. ([database.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/database.yaml))
-10. **Code Quality**: Java 21 features, Lombok. ([code_quality.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/code_quality.yaml))
+1. **Git & Branching**: Git Flow, Conventional Commits. ([git.yaml](../.agent/rules/git.yaml))
+2. **CI/CD Pipeline**: Build, scan, Canary deployment. ([ci_cd.yaml](../.agent/rules/ci_cd.yaml))
+3. **Observability**: Metrics, JSON logs, Micrometer Tracing. ([observability.yaml](../.agent/rules/observability.yaml))
+4. **API Design**: RESTful, RFC 7807, Idempotency. ([api.yaml](../.agent/rules/api.yaml))
+5. **Security**: JWT, AWS Secrets, Snyk scans. ([security.yaml](../.agent/rules/security.yaml))
+6. **Testing**: JUnit 5, JaCoCo, Testcontainers. ([testing.yaml](../.agent/rules/testing.yaml))
+7. **Messaging**: Kafka, Outbox, Saga, Avro. ([messaging.yaml](../.agent/rules/messaging.yaml))
+8. **Architecture**: Hexagonal + DDD-lite. ([architecture.yaml](../.agent/rules/architecture.yaml))
+9. **Database**: PostgreSQL 16, Flyway. ([database.yaml](../.agent/rules/database.yaml))
+10. **Code Quality**: Java 21 features, Lombok. ([code_quality.yaml](../.agent/rules/code_quality.yaml))
 
 ---
 
@@ -65,7 +65,7 @@ AI sẽ tự động sử dụng các mẫu trong `.agent/templates/` khi thực
 | `/feature` | Feature development |
 | `/bugfix` | Bug fixing |
 | `/hotfix` | Production incident response |
-| `/database-migration` | Database schema change |
+| `/database_migration` | Database schema change |
 | `/release` | Production release |
 | `/pr` | Create pull request |
 | `/new_service` | Create microservice |
