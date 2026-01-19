@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: api-gateway-test
+  
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+
+# Disable actuator endpoints for tests
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  tracing:
+    enabled: false
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+# Logging
+logging:
+  level:
+    root: WARN
+    "[com.ecommerce.gateway]": INFO

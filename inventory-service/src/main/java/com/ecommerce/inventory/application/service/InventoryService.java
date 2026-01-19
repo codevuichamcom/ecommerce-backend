@@ -6,6 +6,7 @@ import com.ecommerce.inventory.application.dto.*;
 import com.ecommerce.inventory.domain.model.Inventory;
 import com.ecommerce.inventory.domain.model.StockOperationResult;
 import com.ecommerce.inventory.domain.repository.InventoryRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -26,11 +27,14 @@ public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final com.ecommerce.inventory.infrastructure.kafka.InventoryEventProducer eventProducer;
+    private final MeterRegistry meterRegistry;
 
     public InventoryService(InventoryRepository inventoryRepository,
-            com.ecommerce.inventory.infrastructure.kafka.InventoryEventProducer eventProducer) {
+            com.ecommerce.inventory.infrastructure.kafka.InventoryEventProducer eventProducer,
+            MeterRegistry meterRegistry) {
         this.inventoryRepository = inventoryRepository;
         this.eventProducer = eventProducer;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -79,6 +83,10 @@ public class InventoryService {
                 inventoryRepository.save(inventory);
                 log.info("Reserved {} units for product {} (ref: {})",
                         command.quantity(), command.productId(), command.reservationReference());
+                meterRegistry.counter("inventory_reservation_total",
+                        "product", command.productId(),
+                        "status", "success").increment();
+
                 yield StockOperationResponse.success(
                         s.inventoryId(), command.productId(),
                         s.availableQuantity(), s.reservedQuantity());
@@ -86,6 +94,10 @@ public class InventoryService {
             case StockOperationResult.InsufficientStock is -> {
                 log.warn("Insufficient stock for product {}: requested={}, available={}",
                         command.productId(), is.requested(), is.available());
+                meterRegistry.counter("inventory_reservation_total",
+                        "product", command.productId(),
+                        "status", "insufficient_stock").increment();
+
                 yield StockOperationResponse.failure(
                         is.inventoryId(), command.productId(),
                         is.available(), 0,

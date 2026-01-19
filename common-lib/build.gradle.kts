@@ -28,6 +28,11 @@ dependencies {
     // SLF4J for logging
     api("org.slf4j:slf4j-api")
 
+    // Web (for filters and web context)
+    api("org.springframework:spring-web")
+    api("org.springframework.security:spring-security-core")
+    api("jakarta.servlet:jakarta.servlet-api:6.0.0")
+
     // Testing
     testImplementation("org.junit.platform:junit-platform-launcher")
 }

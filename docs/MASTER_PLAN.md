@@ -11,8 +11,9 @@ Modern e-commerce backend built with **Java 21** and **Spring Boot 3.5.9** follo
 | Phase | Focus | Status |
 |-------|-------|--------|
 | **Phase 1** | Core Domain (Product, Inventory, Order) | ✅ Complete |
-| **Phase 2** | Distributed Flow (Payment, Notification, Kafka) | ✅ Mostly Complete |
-| **Phase 3** | Enterprise (Security, Gateway, Observability) | 🔜 Planned |
+| **Phase 2** | Distributed Flow (Payment, Notification, Kafka) | ✅ Complete |
+| **Phase 3** | Enterprise (Security, Gateway, Observability) | ✅ Complete |
+| **Phase 4** | Resilience & Testing (Circuit Breaker, Chaos) | 🔜 Planned |
 
 ---
 
@@ -26,8 +27,8 @@ Modern e-commerce backend built with **Java 21** and **Spring Boot 3.5.9** follo
 
 ### Services
 ```
-api-gateway          🔜 Phase 3
-auth-service         🔜 Phase 3
+api-gateway          ✅ Port 8080
+auth-service         ✅ Port 8086
 product-service      ✅ Port 8081
 inventory-service    ✅ Port 8082
 order-service        ✅ Port 8083

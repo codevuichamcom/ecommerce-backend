@@ -35,16 +35,36 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+  
+  # Redis
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+  
+  # Cache
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10 minutes default
+      cache-null-values: false
 
 # Actuator
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus,tracing
   endpoint:
     health:
-      show-details: when_authorized
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 # OpenAPI
 springdoc:
@@ -55,6 +75,8 @@ springdoc:
 
 # Logging
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}] %logger{36} - %msg%n"
   level:
     "[com.ecommerce]": DEBUG
     "[org.hibernate.SQL]": DEBUG

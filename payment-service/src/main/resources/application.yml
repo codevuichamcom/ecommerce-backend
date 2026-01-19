@@ -17,7 +17,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        "[format_sql]": true
         dialect: org.hibernate.dialect.PostgreSQLDialect
         
   flyway:
@@ -33,14 +33,18 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       properties:
-        spring.json.trusted.packages: com.ecommerce.common.events
+        "[spring.json.trusted.packages]": com.ecommerce.common.events
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
       retries: 3
       properties:
-        enable.idempotence: true
+        "[enable.idempotence]": true
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
 
 # Virtual Threads (Java 21)
   threads:
@@ -67,12 +71,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus,tracing
   endpoint:
     health:
       show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}] %logger{36} - %msg%n"
   level:
-    com.ecommerce.payment: DEBUG
-    org.springframework.kafka: INFO
+    "[com.ecommerce.payment]": DEBUG
+    "[org.springframework.kafka]": INFO

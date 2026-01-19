@@ -48,6 +48,13 @@ subprojects {
         // Testing
         "testImplementation"("org.springframework.boot:spring-boot-starter-test")
         "testImplementation"("org.assertj:assertj-core")
+
+        // Observability
+        "implementation"("io.micrometer:micrometer-observation")
+        "implementation"("io.micrometer:micrometer-tracing-bridge-brave")
+        "implementation"("io.zipkin.reporter2:zipkin-reporter-brave")
+        "implementation"("io.micrometer:micrometer-registry-prometheus")
+        "implementation"("org.springframework.boot:spring-boot-starter-actuator")
     }
     
     tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {

@@ -3,6 +3,8 @@ rootProject.name = "ecommerce-backend"
 // Include all subprojects
 include(
     "common-lib",
+    "api-gateway",
+    "auth-service",
     "product-service",
     "inventory-service",
     "order-service",
