@@ -329,18 +329,109 @@ docker tag ecommerce/product-service:latest ecommerce/product-service:v1.2.0
 docker push ecommerce/product-service:v1.2.0
 ```
 
-#### 2. Run Database Migrations
+#### 2. Database Migration Procedures
 
-```bash
-# Backup database first
-pg_dump -h prod-db -U postgres product_db > backup_$(date +%Y%m%d).sql
+##### Automated Migrations (Flyway)
+The services use **Flyway** for database migrations. By default, migrations are executed automatically on service startup.
 
-# Run migrations (Flyway auto-runs on service start)
-# Or run manually:
-./gradlew :product-service:flywayMigrate -Dflyway.url=jdbc:postgresql://prod-db:5432/product_db
+**Configuration**:
+```yaml
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    out-of-order: false # Ensure migrations run in order
 ```
 
-#### 3. Deploy Services
+**Migration Workflow**:
+1. Add new migration script to `src/main/resources/db/migration/V{VERSION}__{DESCRIPTION}.sql`.
+2. Commit and push script.
+3. CI/CD pipeline validates migration against a staging database instance.
+4. On deployment, the service applies migrations during the "Pre-start" phase.
+
+##### Manual Migrations
+For complex migrations (e.g., data transformation) or high-load environments, run migrations manually before service deployment.
+
+```bash
+# Run Flyway migrate via Gradle (specified for product-service)
+./gradlew :product-service:flywayMigrate \
+  -Dflyway.url=jdbc:postgresql://prod-db:5432/product_db \
+  -Dflyway.user=postgres \
+  -Dflyway.password=$DB_PASSWORD
+```
+
+##### Migration Failure & Rollback
+If a migration fails, Flyway locks the `flyway_schema_history` table.
+
+**Recovery Steps**:
+1. Identify the failing script: `SELECT * FROM flyway_schema_history WHERE success = false;`
+2. Fix the script or the data issue in the DB.
+3. Repair Flyway metadata: `./gradlew flywayRepair`
+4. Re-run migration: `./gradlew flywayMigrate`
+
+**Rollback Procedure**:
+- **Backward compatible**: Deploy previous code version.
+- **Breaking changes**: Restore from point-in-time backup (see [Disaster Recovery](runbooks/disaster-recovery.md)).
+- **Manual Undo**: Run the corresponding `U{VERSION}` script if available.
+
+---
+
+#### 3. Service Scaling & Capacity Planning
+
+##### Scaling Strategy
+All services are designed to be stateless and scaled horizontally.
+
+**Horizontal Pod Autoscaler (HPA)** (Target):
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: product-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: product-service
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+```
+
+##### Resource Allocation
+| Tier | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|------|-------------|-----------|----------------|--------------|
+| **Gateway** | 500m | 1000m | 512Mi | 1Gi |
+| **Business Apps** | 1000m | 2000m | 1Gi | 2Gi |
+| **Kafka/DB** | 2000m+ | 4000m+ | 4Gi+ | 8Gi+ |
+
+##### Capacity Planning
+- **Throughput**: Each service instance is benchmarked to handle ~200 RPS.
+- **Storage**: DB storage should have 20% headroom always. 
+- **Monitoring**: Alert when CPU/Memory utilization reaches 80% for > 5 minutes.
+
+---
+
+#### 4. Security Audit Checklist
+
+| Item | Status | Tool |
+|------|--------|------|
+| **JWT Secrets Rotation** | Check every 90 days | Vault / AWS Secrets Manager |
+| **Dependency Scanning** | Every build | OWASP / Snyk |
+| **Image Vulnerabilities** | Once/week | Trivy / GCR Scan |
+| **Heads/Logs Sanitization** | Periodic Manual Review | ELK / CloudWatch |
+| **Privileged Access** | Monthly Review | IAM / K8s RBAC |
+| **Network Isolation** | Daily Audit | Calico / VPC Flow Logs |
+
+---
+
+#### 5. Deploy Services
 
 **Rolling Update** (Development):
 ```bash

@@ -1,93 +1,48 @@
-# Runbook: Order Stuck in Pending Status
+# Runbook: Order Stuck Pending
 
-**Alert Name**: `OrderStuckPending`  
-**Severity**: Critical  
-**MTTR Target**: 10 minutes
-
----
-
-## Alert Details
-
-**Symptoms**:
-- Order created but never moves to CONFIRMED/CANCELLED
-- Customer complaints
-- Saga state not progressing
+**Severity**: High  
+**Symptom**: Orders remain in `PENDING` state for > 5 minutes. No `OrderConfirmed` or `OrderCancelled` event generated.
 
 ---
 
-## Diagnosis
+## 1. Diagnosis
 
-### 1. Check Order Saga State
-
+### A. Check Saga State
+Query the `order_sagas` table in the Order DB:
 ```sql
--- Connect to order_db
-psql -h localhost -U postgres -d order_db
-
--- Check saga state
 SELECT order_id, state, last_error, updated_at 
 FROM order_sagas 
-WHERE order_id = '01HQZX3Y4Z5A6B7C8D9E0F1G2H';
+WHERE state NOT IN ('CONFIRMED', 'CANCELLED') 
+AND updated_at < NOW() - INTERVAL '5 minutes';
 ```
 
-### 2. Check Outbox Events
-
+### B. Check Event Outbox
+Check if the next required event was published but not sent:
 ```sql
--- Check if events published
-SELECT * FROM outbox_events 
-WHERE aggregate_id = '01HQZX3Y4Z5A6B7C8D9E0F1G2H'
-ORDER BY created_at DESC;
+SELECT * FROM outbox_events WHERE status = 'PENDING' AND aggregate_id = '<order-id>';
 ```
 
-### 3. Check Kafka Topics
-
-```bash
-# Check order events
-docker exec -it kafka kafka-console-consumer \
-  --bootstrap-server localhost:9092 \
-  --topic order-events \
-  --from-beginning \
-  | grep "01HQZX3Y4Z5A6B7C8D9E0F1G2H"
-```
+### C. Trace the Flow
+Check logs for the specific `order-id` across Gateway, Order, Inventory, and Payment services.
 
 ---
 
-## Resolution
+## 2. Resolution
 
-### Option 1: Republish Events
-
+### A. Manual Event Re-Trigger
+If the event is stuck in the outbox:
 ```sql
--- Mark event as PENDING to retry
-UPDATE outbox_events 
-SET status = 'PENDING', published_at = NULL
-WHERE aggregate_id = '01HQZX3Y4Z5A6B7C8D9E0F1G2H';
+UPDATE outbox_events SET status = 'PENDING', published_at = NULL WHERE aggregate_id = '<order-id>';
 ```
 
-### Option 2: Manual Compensation
-
+### B. Force Cancellation
+If the saga cannot be recovered:
 ```bash
-# Cancel stuck order
-curl -X POST http://localhost:8083/api/v1/orders/01HQZX3Y4Z5A6B7C8D9E0F1G2H/cancel \
-  -H "Authorization: Bearer TOKEN"
-```
-
-### Option 3: Check Downstream Services
-
-```bash
-# Check inventory service
-curl http://localhost:8082/actuator/health
-
-# Check payment service
-curl http://localhost:8084/actuator/health
+curl -X POST http://api-gateway/api/v1/orders/<order-id>/cancel -H "Authorization: Bearer ..."
 ```
 
 ---
 
-## Prevention
-
-- Monitor saga state transitions
-- Alert on orders pending > 5 minutes
-- Implement saga timeout mechanism
-
----
-
-**Last Updated**: 2026-01-19
+## 3. Prevention
+1.  **Saga Timeout**: Implement a background job that automatically cancels orders stuck in a non-terminal state for > 30 minutes.
+2.  **Alerting**: Alert when `COUNT(pending_sagas) > threshold`.

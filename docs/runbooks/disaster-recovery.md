@@ -19,144 +19,78 @@
 
 ### 1. Database Recovery
 
-#### Restore from Backup
-
+#### Restore from Backup (EBS/S3)
+1.  **Stop application instances** to prevent writes.
+2.  **Create new DB instance** from the latest snapshot or restore from S3.
+3.  **Perform restoration**:
 ```bash
-# List available backups
-aws s3 ls s3://ecommerce-backups/postgres/
-
-# Download latest backup
-aws s3 cp s3://ecommerce-backups/postgres/product_db_20260119.sql.gz .
-
-# Restore database
-gunzip product_db_20260119.sql.gz
-psql -h prod-db -U postgres product_db < product_db_20260119.sql
+# Restore via pg_restore (Parallel)
+pg_restore -h prod-db-new -U postgres -j 4 -d product_db product_db_full.dump
 ```
+4.  **Update application connection strings** (via Secrets Manager).
+5.  **Start application instances** one by one.
 
-#### Point-in-Time Recovery
-
-```bash
-# PostgreSQL PITR
-pg_restore --dbname=product_db \
-  --clean \
-  --if-exists \
-  backup_file.dump
-```
-
-### 2. Kafka Topic Recovery
-
-```bash
-# Replay from earliest offset
-kafka-consumer-groups \
-  --bootstrap-server localhost:9092 \
-  --group order-service-group \
-  --topic order-events \
-  --reset-offsets \
-  --to-earliest \
-  --execute
-```
-
-### 3. Service Recovery
-
-```bash
-# Deploy to backup region
-kubectl config use-context backup-cluster
-
-# Apply all manifests
-kubectl apply -f k8s/
-
-# Verify deployment
-kubectl get pods --all-namespaces
-```
+#### Point-in-Time Recovery (PITR)
+Used when data was corrupted but we need to recover to a time *just before* the incident.
+1.  Locate the transaction ID or timestamp of the corruption.
+2.  Initiate PITR in AWS RDS / GCP Cloud SQL console selecting the target timestamp.
+3.  Verify record consistency.
 
 ---
 
-## Recovery Verification
+### 2. Kafka Cluster Recovery
 
-### 1. Data Integrity
+#### Scenario: Broker Failure
+If a broker fails, partitions with replicas will automatically elect a new leader.
+**Recovery**:
+- Spin up a new broker instance with the same ID.
+- Kafka will automatically sync data from other replicas.
 
-```sql
--- Check record counts
-SELECT COUNT(*) FROM orders;
-SELECT COUNT(*) FROM products;
-
--- Verify latest records
-SELECT * FROM orders ORDER BY created_at DESC LIMIT 10;
-```
-
-### 2. Service Health
-
-```bash
-# Check all services
-for port in 8080 8081 8082 8083 8084 8085 8086; do
-  curl http://localhost:$port/actuator/health
-done
-```
-
-### 3. End-to-End Test
-
-```bash
-# Create test order
-curl -X POST http://localhost:8080/api/v1/orders \
-  -H "Authorization: Bearer TOKEN" \
-  -d '{"customerId":"test","items":[{"productId":"test-product","quantity":1}]}'
-```
+#### Scenario: Complete Cluster Loss
+1.  Deploy a new Kafka cluster.
+2.  Create all topics (see [Event Catalog](../architecture/event-catalog.md)).
+3.  **Data Replay**: Since events are stored in the DB (Outbox table), use the `OutboxRelay` service to re-read and re-publish events from the last 24 hours.
 
 ---
 
-## Backup Strategy
+### 3. Service Regional Failover
 
-### Automated Backups
-
-**Databases**:
-- Full backup: Daily at 3 AM
-- Incremental: Every 6 hours
-- Retention: 30 days
-
-**Configuration**:
-```bash
-# Cron job
-0 3 * * * /scripts/backup-databases.sh
-```
-
-**Kafka**:
-- Topic replication: 3x
-- Log retention: 7 days
+Used when an entire AWS/Azure/GCP region goes down.
+1.  **Switch Traffic** via Route53 / Global Accelerator to the backup region.
+2.  **Scale up** backup instances (HPA will handle this, but manual override is safer).
+3.  **Promote Read Replica** in the backup region to Primary.
 
 ---
 
-## Communication Plan
+## Recovery Verification & Post-Mortem
 
-### Incident Declaration
+### 1. Data Consistency Check
+Verify that the `total_amount` in `orders` matches the sum of transaction amounts in `payments` for the last 1000 records.
 
-1. **Notify**: Post in `#incidents` Slack channel
-2. **Page**: Alert on-call via PagerDuty
-3. **Escalate**: Notify CTO for major outages
+### 2. Monitoring Baseline
+Confirm that Prometheus/Grafana show normal traffic patterns after failover.
 
-### Status Updates
-
-- Every 15 minutes during recovery
-- Use status page for customer communication
+### 3. Incident Communication Plan
+- **Status Page**: `https://status.ecommerce.com` updated every 15 mins.
+- **Internal**: `#war-room` Slack channel.
 
 ---
 
-## Post-Recovery
+## Backup Strategy Summary
 
-### 1. Post-Mortem
+| Component | Method | Frequency | Retention |
+|-----------|--------|-----------|-----------|
+| **PostgreSQL** | RDS Snapshot + WAL | Daily / 5 min | 35 days |
+| **Kafka** | Disk Snapshots | Daily | 7 days |
+| **Configuration** | Git / Vault Versions | On change | Indefinite |
+| **Docker Images** | Registry Versioning | Every build | 90 days / 10 tags |
 
-- Document timeline
-- Identify root cause
-- Create action items
+---
 
-### 2. Update Runbook
-
-- Note what worked/didn't work
-- Update procedures
-
-### 3. Test Recovery
-
-- Schedule quarterly DR drills
-- Verify backup integrity
+## Post-Recovery Flow
+1. **Stabilize**: Monitor system for 4 hours.
+2. **Backfill**: Run scripts to reconcile any missing data from logs.
+3. **Formal Post-Mortem**: Document within 48 hours.
 
 ---
 
@@ -170,3 +104,4 @@ curl -X POST http://localhost:8080/api/v1/orders \
 ---
 
 **Last Updated**: 2026-01-19
+**Maintained By**: DevOps Team

@@ -661,9 +661,11 @@ record OrderCreated(
 - [Outbox Pattern](outbox-pattern.md) - Reliable event delivery
 - [System Overview](system-overview.md) - Architecture context
 - [Troubleshooting](../TROUBLESHOOTING.md) - Event-related issues
+- [Payment Service](../services/payment-service.md) - Payment events
+- [Notification Service](../services/notification-service.md) - Notification events
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2026-01-19  
+**Document Version**: 1.1
+**Last Updated**: 2026-01-19
 **Maintained By**: Backend Team

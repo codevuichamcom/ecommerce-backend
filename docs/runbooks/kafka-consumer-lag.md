@@ -1,159 +1,58 @@
 # Runbook: Kafka Consumer Lag
 
-**Alert Name**: `KafkaConsumerLag`  
-**Severity**: Warning  
-**MTTR Target**: 15 minutes
+**Severity**: Medium/High  
+**Symptom**: `order-events` or `payment-events` have high lag; business operations (e.g., confirmations) are delayed.
 
 ---
 
-## Alert Details
+## 1. Immediate Mitigation
 
-**Trigger Condition**:
-```promql
-kafka_consumer_lag > 1000
-```
-
-**Symptoms**:
-- Consumer lag increasing
-- Events processed slowly
-- Delayed notifications/updates
+1.  **Scale Consumers**: Increase the number of pods for the consumer service.
+    ```bash
+    kubectl scale deployment/<service-name> --replicas=5
+    ```
+2.  **Verify Kafka Health**: Ensure brokers are not under heavy load or disk pressure.
 
 ---
 
-## Diagnosis
+## 2. Diagnosis
 
-### 1. Check Current Lag
-
+### A. Check Lag Statistics
 ```bash
-# View consumer groups
-docker exec -it kafka kafka-consumer-groups \
-  --bootstrap-server localhost:9092 \
-  --list
-
-# Check specific group lag
-docker exec -it kafka kafka-consumer-groups \
-  --bootstrap-server localhost:9092 \
-  --group order-service-group \
-  --describe
+kafka-consumer-groups --bootstrap-server localhost:9092 --group <group-id> --describe
 ```
 
-**Expected Output**:
-```
-TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG
-order-events    0          1000            1500            500
-order-events    1          2000            2100            100
-```
+### B. Check Consumer Logs
+Look for:
+- `Slow processing of event ID: ...`
+- `Request timeout`
+- `Rebalancing group` (Too many rebalances prevent processing)
 
-### 2. Check Consumer Status
-
-```bash
-# Check if consumers are running
-kubectl get pods -l app=order-service
-
-# Check consumer logs
-kubectl logs -f order-service-xxx | grep "Kafka"
-```
-
-### 3. Check Producer Rate
-
-```bash
-# Prometheus query
-rate(kafka_producer_record_send_total[5m])
-```
+### C. Identify Blocking I/O
+Is the consumer waiting on a slow DB query or an external API? Check distributed traces in Zipkin.
 
 ---
 
-## Resolution
+## 3. Resolution
 
-### Option 1: Increase Consumer Concurrency
-
-**When**: Lag is consistent, consumers healthy
-
+### Increase Concurrency
+If the topic has multiple partitions, increase service concurrency:
 ```yaml
-# application.yml
 spring:
   kafka:
     listener:
-      concurrency: 5  # Increase from 3
+      concurrency: 3
 ```
 
-**Steps**:
-1. Update configuration
-2. Restart service
-3. Monitor lag reduction
-
-### Option 2: Scale Horizontally
-
-**When**: Single consumer at capacity
-
+### Skip Poison Pill Message (Last Resort)
+If a single malformed message is crashing the consumer:
 ```bash
-# Scale up instances
-kubectl scale deployment order-service --replicas=3
-```
-
-### Option 3: Optimize Consumer Logic
-
-**When**: Consumers slow due to processing
-
-**Check**:
-- Slow database queries
-- External API calls
-- Heavy computation
-
-**Fix**:
-- Add database indexes
-- Use async processing
-- Batch operations
-
-### Option 4: Increase Partitions
-
-**When**: Partitions < consumer instances
-
-```bash
-# Add partitions (cannot be undone!)
-docker exec -it kafka kafka-topics \
-  --bootstrap-server localhost:9092 \
-  --alter \
-  --topic order-events \
-  --partitions 10
+kafka-consumer-groups --bootstrap-server localhost:9092 --group <group-id> --topic <topic-name> --reset-offsets --to-offset <next-offset> --execute
 ```
 
 ---
 
-## Verification
-
-```bash
-# Check lag is decreasing
-watch -n 5 'docker exec kafka kafka-consumer-groups \
-  --bootstrap-server localhost:9092 \
-  --group order-service-group \
-  --describe'
-```
-
-**Success Criteria**:
-- Lag < 1000 messages
-- Lag decreasing consistently
-
----
-
-## Escalation
-
-**Escalate if**:
-- Lag continues growing after 30 minutes
-- Consumers crashing repeatedly
-- Kafka cluster issues
-
-**Contact**: On-call SRE via PagerDuty
-
----
-
-## Prevention
-
-- Monitor consumer lag continuously
-- Set up alerts at lag > 500
-- Regular capacity planning
-- Load testing before releases
-
----
-
-**Last Updated**: 2026-01-19
+## 4. Prevention
+1.  **Async Processing**: Use a thread pool for non-transactional work.
+2.  **Batching**: Enable `max-poll-records` to process events in batches.
+3.  **Dead Letter Queue (DLQ)**: Ensure failing messages are moved to a DLQ after N retries instead of blocking the main pipe.

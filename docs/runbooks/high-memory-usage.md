@@ -1,94 +1,48 @@
-# Runbook: High Memory Usage
+# Runbook: High Memory Usage / OOM
 
-**Alert Name**: `HighMemoryUsage`  
-**Severity**: Warning  
-**MTTR Target**: 30 minutes
-
----
-
-## Alert Details
-
-**Trigger**:
-```promql
-(jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) > 0.9
-```
-
-**Symptoms**:
-- Slow response times
-- Frequent GC pauses
-- OutOfMemoryError
+**Severity**: High  
+**Symptom**: Service restarts with `Exit Code 137` (OOM Killed) or `java.lang.OutOfMemoryError`.
 
 ---
 
-## Diagnosis
+## 1. Immediate Mitigation
 
-### 1. Check Memory Usage
+1.  **Restart Instance**: Temporary fix to restore service.
+2.  **Rollback Recent Changes**: If OOM started after a specific deployment, rollback immediately.
+3.  **Scale Up (Vertical)**: Increase memory limits in K8s/Docker.
 
+---
+
+## 2. Diagnosis
+
+### A. Check GC Metrics
+Check `jvm_gc_memory_promoted_bytes_total` in Grafana. If it's rising sharply, you have a leak.
+
+### B. Capture Heap Dump
 ```bash
-# Prometheus
-curl http://localhost:8081/actuator/prometheus | grep jvm_memory
-
-# JVM info
-jcmd <PID> VM.native_memory summary
+jmap -dump:live,format=b,file=oom.hprof <PID>
 ```
+Analyze with **Eclipse Memory Analyzer (MAT)**. Look for "Leak Suspects".
 
-### 2. Generate Heap Dump
-
-```bash
-# Create heap dump
-jmap -dump:format=b,file=heap.bin <PID>
-
-# Analyze with Eclipse MAT or VisualVM
-```
-
-### 3. Check for Memory Leaks
-
-Common causes:
-- Caching without eviction
-- Large result sets
-- Connection/resource leaks
+### C. Check Large Queries
+Check if the service is loading a huge amount of rows into memory without pagination.
 
 ---
 
-## Resolution
+## 3. Resolution
 
-### Option 1: Increase Heap Size
+### A. Optimization
+- Fix N+1 select problems.
+- Use `Stream` or `Page` for DB results.
+- Reduce cache size if using local memory (Caffeine/Ehcache).
 
+### B. Adjust JVM Args
 ```bash
-# Run with more memory
-java -Xmx2g -Xms1g -jar service.jar
-```
-
-### Option 2: Fix Memory Leaks
-
-```java
-// ❌ Bad - Unbounded cache
-private Map<String, Product> cache = new HashMap<>();
-
-// ✅ Good - Bounded cache with eviction
-@Cacheable(value = "products", key = "#id")
-public Product findById(String id) { ... }
-```
-
-### Option 3: Enable Pagination
-
-```java
-// ❌ Bad - Load all
-List<Product> products = productRepository.findAll();
-
-// ✅ Good - Paginate
-Page<Product> products = productRepository.findAll(PageRequest.of(0, 20));
+-Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200
 ```
 
 ---
 
-## Verification
-
-```bash
-# Check memory usage decreased
-curl http://localhost:8081/actuator/metrics/jvm.memory.used
-```
-
----
-
-**Last Updated**: 2026-01-19
+## 4. Prevention
+1.  **Set Limits**: Always set `Xmx` slightly lower than the container limit to allow for native memory.
+2.  **Load Testing**: Run stress tests to identify memory ceilings before production.
