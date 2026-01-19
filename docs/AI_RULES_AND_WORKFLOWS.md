@@ -14,10 +14,11 @@ Tài liệu này tổng hợp toàn bộ **Rules** (Quy tắc) và **Workflows**
 
 ```
 .agent/
-├── rules/              # 10 quy tắc kỹ thuật
+├── README.md           # Tóm tắt nhanh
+├── rules/              # 10 Quy tắc kỹ thuật
 │   ├── git.yaml                 # ✨ NEW
 │   ├── ci_cd.yaml               # ✨ NEW
-│   ├── observability.yaml       # ✨ NEW (Updated: Micrometer Tracing & Runbooks)
+│   ├── observability.yaml       # ✨ NEW
 │   ├── api.yaml                 # ⚡ ENHANCED
 │   ├── security.yaml            # ⚡ ENHANCED
 │   ├── testing.yaml             # ⚡ ENHANCED
@@ -25,7 +26,7 @@ Tài liệu này tổng hợp toàn bộ **Rules** (Quy tắc) và **Workflows**
 │   ├── architecture.yaml
 │   ├── database.yaml
 │   └── code_quality.yaml
-└── workflows/          # 9 quy trình làm việc
+└── workflows/          # 9 Quy trình làm việc
     ├── hotfix.md                # ✨ NEW
     ├── database_migration.md    # ✨ NEW
     ├── release.md               # ✨ NEW
@@ -39,111 +40,89 @@ Tài liệu này tổng hợp toàn bộ **Rules** (Quy tắc) và **Workflows**
 
 ---
 
-## 📐 Rules (Quy tắc)
+## 📐 Rules (Quy tắc chi tiết)
 
 ### 1. Git & Branching ([git.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/git.yaml))
-
-**Mục đích**: Quy chuẩn Git Flow, branch naming, commit messages, và PR standards.
-
-**Workflow**: Git Flow.
-
-**Merge strategy**: Squash (Feature/Bugfix), Merge commit (Hotfix/Release).
-
----
+- **Workflow**: Git Flow (main, develop, feature, bugfix, hotfix, release).
+- **Convention**: Conventional Commits (`feat:`, `fix:`, `docs:`, etc.).
+- **Standards**: Reference Ticket ID trong footer, Smash merge cho feature.
 
 ### 2. CI/CD Pipeline ([ci_cd.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/ci_cd.yaml))
+- **Stages**: Compile → Test → Static Analysis (SonarQube) → Docker Build/Scan.
+- **Strategies**: Dev (Rolling), Staging (Blue-Green), Production (Canary).
+- **Rollback**: Tự động khi error rate > 5% hoặc manual khi có sự cố.
 
-**Mục đích**: Build pipeline, deployment strategies, environment promotion, rollback.
-
-**Deployment strategies**: Dev (Rolling), Staging (Blue-Green), Production (Canary).
-
----
-
-### 3. Observability ([observability.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/observability.yaml)) ⚡ UPDATED
-
-**Mục đích**: Monitoring, logging, tracing, alerting cho production.
-
-**Pillars**: Metrics (Micrometer), Logs (Structured JSON), Traces (**Micrometer Tracing**).
-
-**Alerting & Runbooks** ✨:
-- Mỗi alert phải đi kèm **Runbook**.
-- **Example Runbook**: [sample-alert-runbook.md](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/docs/runbooks/sample-alert-runbook.md).
-- **Runbook Template** bao gồm: alert_name, severity, impact, diagnosis_steps, resolution_steps, escalation_path.
-
----
+### 3. Observability ([observability.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/observability.yaml))
+- **Tracing**: Micrometer Tracing (thay thế Sleuth).
+- **Logging**: Structured JSON, mask sensitive data (PII).
+- **Alerting**: Gắn kèm Runbook cho mọi alert. [Sample Runbook](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/docs/runbooks/sample-alert-runbook.md).
 
 ### 4. API Design ([api.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/api.yaml))
-
-**Mục đích**: RESTful conventions, error handling, versioning, pagination, rate limiting.
-
-**Pagination**: Cursor-based (ưu tiên) hoặc Offset-based.
-
----
+- **Versioning**: Path-based (`/api/v1/...`).
+- **Standard**: RFC 7807 Problem Details.
+- **Mutations**: Bắt buộc có `Idempotency-Key`.
+- **Pagination**: Ưu tiên Cursor-based cho dữ liệu lớn.
 
 ### 5. Security ([security.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/security.yaml))
-
-- **Auth**: JWT + Spring Security.
-- **CORS & Headers**: Cấu hình bảo mật nâng cao.
-- **Secrets**: AWS Secrets Manager với rotation chu kỳ.
-
----
+- **Auth**: JWT, Spring Security Roles (ADMIN, CUSTOMER, SERVICE).
+- **Secrets**: AWS Secrets Manager, rotation chu kỳ 90 ngày.
+- **Scan**: Snyk & OWASP daily scan.
 
 ### 6. Testing ([testing.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/testing.yaml))
-
-- **Coverage**: ≥70% (service), ≥80% (domain).
-- **Advanced**: Contract (Pact), Performance (Gatling), Chaos (Chaos Monkey).
-
----
+- **Coverage**: Tool JaCoCo, Service ≥70%, Domain ≥80%.
+- **Patterns**: Given-When-Then, Testcontainers cho Integration tests.
+- **Advanced**: Contract Testing (Pact), Chaos Engineering (Chaos Monkey).
 
 ### 7. Messaging ([messaging.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/messaging.yaml))
+- **Pattern**: Outbox, Idempotent Consumer, Saga.
+- **Schema**: Avro + Schema Registry (Confluent).
+- **Limits**: Max message 1MB, alert khi Lag > 10,000.
 
-- **Patterns**: Outbox, Idempotent Consumer, Saga.
-- **Evolution**: Avro + Schema Registry.
+### 8. Architecture ([architecture.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/architecture.yaml))
+- **Pattern**: Hexagonal Architecture.
+- **DDD**: Domain logic tách biệt khỏi JPA Entity.
+- **Rule**: No business logic in Controllers or Repositories.
+
+### 9. Database ([database.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/database.yaml))
+- **PostgreSQL**: Version 16.
+- **Migration**: Flyway (Sequential numbering).
+- **Review**: Human review BẮT BUỘC cho mọi thay đổi schema.
+
+### 10. Code Quality ([code_quality.yaml](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/rules/code_quality.yaml))
+- **Java 21**: Record, Sealed classes, Pattern matching.
+- **Lombok**: Hạn chế `@SneakyThrows`.
+- **Naming**: PascalCase cho Class, camelCase cho Method.
 
 ---
 
-### 8. Architecture & Code Quality
-
-- **Kiến trúc**: Hexagonal + DDD-lite.
-- **Java 21**: record, sealed class, pattern matching, virtual threads.
-
----
-
-## 🔄 Workflows (Quy trình làm việc)
+## 🔄 Workflows (Quy trình chi tiết)
 
 ### 1. Feature Development ([/feature](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/feature.md))
+Quy trình phát triển tính năng từ Requirement → Architecture Review → Code. Có hỗ trợ **Feature Flags** (Toggles).
 
-**Khi nào**: Phát triển tính năng mới. Hỗ trợ **Feature Flags** cho gradual rollout.
+### 2. Bug Fixing ([/bugfix](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/bugfix.md))
+Tập trung vào Reproduce và Regression Test trước khi fix.
 
----
+### 3. Hotfix ([/hotfix](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/hotfix.md))
+Phản ứng nhanh cho sự cố Production, bỏ qua một số bước review rườm rà nhưng yêu cầu Post-Mortem.
 
-### 2. Hotfix ([/hotfix](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/hotfix.md))
+### 4. Database Migration ([/database_migration](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/database_migration.md))
+Quy trình nâng cấp database không gây downtime bằng Expand-Contract pattern.
 
-**Khi nào**: Sự cố Production P0/P1. Quy trình phản ứng nhanh và Post-Mortem.
+### 5. Release ([/release](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/release.md))
+Nâng version, cập nhật changelog và triển khai qua Staging → Production (Canary).
 
----
+### 6. Pull Request ([/pr](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/pr.md))
+Chuẩn hóa cách đặt title, mô tả và checklist tự kiểm tra chất lượng code trước khi gửi review.
 
-### 4. Database Migration ([/database-migration](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/database_migration.md))
+### 7. New Microservice ([/new_service](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/new_service.md))
+Tạo mới một service hoàn chỉnh với cấu trúc thư mục, cấu hình Gradle và Docker chuẩn.
 
-**Khi nào**: Thay đổi database schema. Sử dụng Expand-Contract pattern.
+### 8. Dependency Update ([/dependency_update](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/dependency_update.md))
+Cập nhật thư viện an toàn: Check license, quét CVE và test độ tương thích.
 
----
-
-### 4. Release ([/release](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/release.md))
-
-**Khi nào**: Release version mới. Quy trình staging QA và Canary deploy.
-
----
-
-### 5. Dependency Update ([/dependency-update](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/dependency_update.md)) ✨ NEW
-
-**Khi nào**: Quản lý thư viện (Security scan, license check, tech review).
-
----
-
-### 6. Refactor ([/refactor](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/refactor.md))
-
-**Khi nào**: Cải thiện code quality. Đo lường bằng Complexity và Quality Gate metrics.
+### 9. Refactor ([/refactor](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/workflows/refactor.md))
+Cải tiến code mà không đổi behavior. Đo lường bằng Cyclomatic & Cognitive Complexity.
 
 ---
 
@@ -166,12 +145,12 @@ Tài liệu này tổng hợp toàn bộ **Rules** (Quy tắc) và **Workflows**
 | `/database-migration` | Database schema change |
 | `/release` | Production release |
 | `/pr` | Create pull request |
-| `/new-service` | Create microservice |
+| `/new_service` | Create microservice |
 | `/refactor` | Refactoring |
-| `/dependency-update` | Library management |
+| `/dependency_update` | Library management |
 
 ---
 
 **Last Updated**: 2026-01-19  
-**Version**: 2.3 (Perfect Consistency)  
-**Status**: ✅ 10/10 Gold Standard
+**Version**: 2.3  
+**Status**: ✅ Gold Standard
