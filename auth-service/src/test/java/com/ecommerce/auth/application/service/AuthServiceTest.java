@@ -49,7 +49,7 @@ class AuthServiceTest {
 
     @Test
     void register_ShouldSaveUser_WhenRequestIsValid() {
-        RegisterRequest request = new RegisterRequest("testuser", "test@example.com", "password123");
+        RegisterRequest request = new RegisterRequest("testuser", "test@example.com", "Password123!");
         when(userRepository.existsByUsername(request.username())).thenReturn(false);
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(passwordEncoder.encode(request.password())).thenReturn("encodedPassword");
@@ -61,7 +61,7 @@ class AuthServiceTest {
 
     @Test
     void register_ShouldThrowException_WhenUsernameExists() {
-        RegisterRequest request = new RegisterRequest("testuser", "test@example.com", "password123");
+        RegisterRequest request = new RegisterRequest("testuser", "test@example.com", "Password123!");
         when(userRepository.existsByUsername(request.username())).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(request))
@@ -70,7 +70,7 @@ class AuthServiceTest {
 
     @Test
     void login_ShouldReturnTokens_WhenCredentialsAreValid() {
-        LoginRequest request = new LoginRequest("testuser", "password123");
+        LoginRequest request = new LoginRequest("testuser", "Password123!");
         User user = new User(new UserId(UUID.randomUUID()), "testuser", "test@example.com", "encodedHash",
                 Set.of(Role.CUSTOMER));
 
@@ -88,7 +88,7 @@ class AuthServiceTest {
 
     @Test
     void login_ShouldThrowException_WhenCredentialsAreInvalid() {
-        LoginRequest request = new LoginRequest("testuser", "wrongpassword");
+        LoginRequest request = new LoginRequest("testuser", "WrongPassword123!");
         User user = new User(new UserId(UUID.randomUUID()), "testuser", "test@example.com", "encodedHash",
                 Set.of(Role.CUSTOMER));
 
