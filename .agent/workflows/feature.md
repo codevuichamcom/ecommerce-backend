@@ -91,7 +91,7 @@ This workflow guides the development of new features in the ecommerce-backend mi
 - [ ] Domain layer implemented
 - [ ] Application layer implemented
 - [ ] Infrastructure layer implemented
-- [ ] Unit tests written (coverage ≥ 70%)
+- [ ] Unit tests written (Service ≥70%, Domain ≥80%)
 - [ ] Integration tests written (if needed)
 - [ ] All tests passing
 - [ ] Code reviewed against rules
