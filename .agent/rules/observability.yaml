@@ -1,0 +1,322 @@
+# Observability rules - Metrics, logging, tracing, monitoring, alerting
+
+observability:
+  pillars:
+    - metrics
+    - logs
+    - traces
+    
+  metrics:
+    framework: micrometer
+    backend: prometheus
+    visualization: grafana
+    
+    must_track:
+      business_metrics:
+        - orders_created_total
+        - payments_processed_total
+        - revenue_total
+        - cart_abandonment_rate
+        
+      application_metrics:
+        - http_requests_total
+        - http_request_duration_seconds
+        - http_requests_in_flight
+        - database_queries_total
+        - database_query_duration_seconds
+        - kafka_messages_produced_total
+        - kafka_messages_consumed_total
+        - kafka_consumer_lag
+        
+      system_metrics:
+        - jvm_memory_used_bytes
+        - jvm_threads_live
+        - jvm_gc_pause_seconds
+        - process_cpu_usage
+        
+      custom_metrics:
+        - saga_completion_rate
+        - saga_compensation_rate
+        - idempotency_key_duplicates_total
+        - circuit_breaker_state
+        
+    naming_convention:
+      format: "{namespace}_{subsystem}_{name}_{unit}"
+      examples:
+        - "ecommerce_order_created_total"
+        - "ecommerce_payment_duration_seconds"
+        - "ecommerce_inventory_reserved_total"
+        
+    labels:
+      recommended:
+        - service
+        - environment
+        - version
+        - http_method
+        - http_status
+        - error_type
+        
+    prometheus_annotations:
+      scrape: true
+      port: 8080
+      path: /actuator/prometheus
+
+  logging:
+    framework: slf4j_with_logback
+    format: json
+    
+    log_levels:
+      production:
+        root: INFO
+        application: INFO
+        spring: WARN
+        hibernate: WARN
+        
+      staging:
+        root: DEBUG
+        application: DEBUG
+        spring: INFO
+        
+      development:
+        root: DEBUG
+        application: DEBUG
+        
+    structured_logging:
+      must_include:
+        - timestamp
+        - level
+        - logger
+        - message
+        - correlation_id
+        - request_id
+        - user_id
+        - service_name
+        - environment
+        
+      example: |
+        {
+          "timestamp": "2026-01-19T14:00:00.123Z",
+          "level": "INFO",
+          "logger": "com.ecommerce.order.OrderService",
+          "message": "Order created successfully",
+          "correlationId": "abc-123-def",
+          "requestId": "req-456",
+          "userId": "user-789",
+          "orderId": "order-101",
+          "service": "order-service",
+          "environment": "production"
+        }
+        
+    log_aggregation:
+      tool: elasticsearch_or_cloudwatch
+      retention:
+        production: 90_days
+        staging: 30_days
+        development: 7_days
+        
+    sensitive_data:
+      never_log:
+        - passwords
+        - tokens
+        - api_keys
+        - credit_card_numbers
+        - social_security_numbers
+      
+      mask_in_logs:
+        - email: "us***@example.com"
+        - phone: "***-***-1234"
+        - name: "Jo** Do*"
+
+  tracing:
+    framework: micrometer_tracing  # Sleuth deprecated since Spring Boot 3
+    backend: zipkin_or_jaeger
+    sampling_rate:
+      production: 0.1
+      staging: 0.5
+      development: 1.0
+      
+    must_trace:
+      - http_requests
+      - kafka_message_flow
+      - database_queries
+      - external_api_calls
+      - saga_orchestration
+      
+    trace_context:
+      must_propagate:
+        - trace_id
+        - span_id
+        - parent_span_id
+        - correlation_id
+        
+    visualization:
+      tool: jaeger_ui
+      use_for:
+        - debugging_latency
+        - identifying_bottlenecks
+        - understanding_request_flow
+        - analyzing_dependencies
+
+  health_checks:
+    endpoints:
+      liveness: /actuator/health/liveness
+      readiness: /actuator/health/readiness
+      
+    liveness_checks:
+      - application_running
+      - no_deadlock
+      
+    readiness_checks:
+      - database_accessible
+      - kafka_accessible
+      - redis_accessible
+      - downstream_services_accessible
+      
+    health_indicators:
+      custom:
+        - saga_coordinator_health
+        - outbox_processor_health
+        - event_publisher_health
+        
+    timeout:
+      liveness: 5_seconds
+      readiness: 10_seconds
+      
+    kubernetes_integration:
+      liveness_probe:
+        path: /actuator/health/liveness
+        initial_delay: 30
+        period: 10
+        timeout: 5
+        failure_threshold: 3
+        
+      readiness_probe:
+        path: /actuator/health/readiness
+        initial_delay: 15
+        period: 10
+        timeout: 5
+        failure_threshold: 3
+
+  alerting:
+    tool: prometheus_alertmanager
+    
+    critical_alerts:
+      - name: service_down
+        condition: up == 0
+        duration: 1m
+        severity: critical
+        
+      - name: high_error_rate
+        condition: error_rate > 5%
+        duration: 5m
+        severity: critical
+        
+      - name: high_latency
+        condition: p95_latency > 2000ms
+        duration: 5m
+        severity: critical
+        
+      - name: database_connection_pool_exhausted
+        condition: connection_pool_active >= connection_pool_max
+        duration: 2m
+        severity: critical
+        
+      - name: kafka_consumer_lag_high
+        condition: consumer_lag > 10000
+        duration: 10m
+        severity: critical
+        
+    warning_alerts:
+      - name: high_memory_usage
+        condition: memory_usage > 80%
+        duration: 10m
+        severity: warning
+        
+      - name: high_cpu_usage
+        condition: cpu_usage > 80%
+        duration: 10m
+        severity: warning
+        
+      - name: slow_database_queries
+        condition: query_duration_p95 > 1000ms
+        duration: 10m
+        severity: warning
+        
+    notification_channels:
+      critical:
+        - pagerduty
+        - slack_critical_channel
+        - sms_oncall_engineer
+        
+      warning:
+        - slack_monitoring_channel
+        - email_team
+
+  runbook_template:
+    location: docs/runbooks/
+    must_include:
+      - alert_name
+      - severity
+      - impact
+      - diagnosis_steps
+      - resolution_steps
+      - escalation_path
+
+  dashboards:
+    must_have:
+      - service_overview_dashboard
+      - business_metrics_dashboard
+      - kafka_monitoring_dashboard
+      - database_performance_dashboard
+      - jvm_metrics_dashboard
+      
+    service_overview_dashboard:
+      panels:
+        - request_rate
+        - error_rate
+        - latency_percentiles
+        - active_requests
+        - jvm_memory
+        - cpu_usage
+        
+    business_metrics_dashboard:
+      panels:
+        - orders_per_minute
+        - revenue_per_hour
+        - active_users
+        - cart_conversion_rate
+
+  slos_and_slis:
+    availability_slo: 99.9%
+    latency_slo_p95: 500ms
+    latency_slo_p99: 1000ms
+    error_rate_slo: 0.1%
+    
+    slis:
+      - name: availability
+        measurement: successful_requests / total_requests
+        
+      - name: latency
+        measurement: request_duration_percentile
+        
+      - name: error_rate
+        measurement: failed_requests / total_requests
+
+  best_practices:
+    - "Use correlation IDs across all logs and traces"
+    - "Set up alerts before going to production"
+    - "Monitor business metrics, not just technical metrics"
+    - "Keep dashboards simple and actionable"
+    - "Test health checks regularly"
+    - "Use distributed tracing to debug issues"
+    - "Set appropriate log levels per environment"
+    - "Don't log sensitive data"
+    - "Monitor Kafka consumer lag"
+    - "Track deployment markers in metrics"
+
+  forbid:
+    - production_without_monitoring
+    - alerts_without_runbooks
+    - logging_at_debug_level_in_production
+    - ignoring_health_check_failures
+    - too_many_alerts_causing_fatigue

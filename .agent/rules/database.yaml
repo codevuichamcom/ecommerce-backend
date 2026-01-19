@@ -1,0 +1,50 @@
+# Database rules - schema changes require human review
+
+database:
+  type: postgresql
+  version: "16"
+  
+  schema_change:
+    require_human_review: true
+    reason: "Schema changes can break production - human must approve"
+    
+  migration:
+    tool: flyway
+    location: src/main/resources/db/migration
+    naming_convention: "V{version}__{description}.sql"
+    versioning: sequential_numbers
+    
+  jpa:
+    must:
+      - use_optimistic_locking_version_for_concurrency
+      - separate_domain_jpa_entities
+      - avoid_n_plus_1_with_fetch_join
+      - use_proper_fetch_types
+      - define_indexes_for_queries
+      
+    forbid:
+      - auto_schema_update_in_prod
+      - cascade_delete_without_review
+      - bidirectional_relationships_without_reason
+      - lazy_loading_outside_transaction
+      
+  transactions:
+    must:
+      - use_transactional_annotation
+      - handle_optimistic_lock_exception
+      - use_retryable_for_transient_failures
+      
+  caching:
+    tool: redis
+    version: "7"
+    use_cases:
+      - product_catalog
+      - user_sessions
+      - rate_limiting
+
+best_practices:
+  - "Use @Version for optimistic locking"
+  - "Separate JPA entities from domain entities"
+  - "Use Flyway for all schema changes"
+  - "Test migrations in dev environment first"
+  - "Never use ddl-auto=update in production"

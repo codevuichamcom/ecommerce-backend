@@ -1,0 +1,47 @@
+# Hexagonal Architecture + DDD-lite rules for ecommerce-backend
+# Human owns decisions – AI supports thinking & execution
+
+principles:
+  - human_owns_decisions_ai_supports_execution
+
+architecture:
+  style: hexagonal
+  
+  layers:
+    - application    # Use cases, services, DTOs, commands
+    - domain         # Entities, value objects, domain services, domain events
+    - infrastructure # Adapters, repositories, external services, messaging
+
+  must_follow:
+    - hexagonal_ports_adapters
+    - domain_driven_design_light
+    - event_driven_with_kafka
+    - separate_domain_and_jpa_entities
+
+  forbidden:
+    - controller_access_repository_directly
+    - business_logic_in_controller
+    - domain_depends_on_infrastructure
+    - jpa_entity_as_domain_entity
+    - shared_mutable_state_across_services
+
+services:
+  - api-gateway
+  - auth-service
+  - product-service
+  - inventory-service
+  - order-service
+  - payment-service
+  - notification-service
+  - common-lib
+
+patterns:
+  required:
+    - saga_pattern_for_distributed_transactions
+    - outbox_pattern_for_reliable_messaging
+    - idempotent_consumer
+  
+  recommended:
+    - cqrs_where_appropriate
+    - repository_pattern
+    - factory_pattern_for_complex_creation

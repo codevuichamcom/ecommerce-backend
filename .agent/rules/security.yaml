@@ -1,0 +1,165 @@
+# Security rules - JWT, validation, secrets
+
+security:
+  authentication:
+    method: jwt
+    issuer: auth-service
+    validator: api-gateway
+    token_types:
+      - access_token
+      - refresh_token
+      
+  authorization:
+    framework: spring_security
+    roles:
+      - ADMIN
+      - CUSTOMER
+      - SERVICE
+      
+  must:
+    - validate_all_input
+    - handle_authorization_properly
+    - use_spring_security
+    - sanitize_log_output
+    - use_https_in_production
+    - implement_rate_limiting
+    
+  forbid:
+    - hardcoded_secrets
+    - logging_sensitive_data
+    - disabled_csrf_without_justification
+    - expose_stack_trace_to_client
+    - store_password_in_plain_text
+    - jwt_in_url_parameters
+
+sensitive_data:
+  never_log:
+    - passwords
+    - tokens
+    - api_keys
+    - credit_card_numbers
+    - personal_identifiable_information
+
+input_validation:
+  must:
+    - validate_at_controller_layer
+    - use_jakarta_validation_annotations
+    - sanitize_user_input
+    - check_for_sql_injection
+    - validate_file_uploads
+
+api_security:
+  must:
+    - use_idempotency_key_for_mutations
+    - implement_cors_properly
+    - rate_limit_at_gateway
+    - validate_jwt_at_gateway
+
+  cors:
+    allowed_origins:
+      production:
+        - "https://ecommerce.com"
+        - "https://www.ecommerce.com"
+      staging:
+        - "https://staging.ecommerce.com"
+      development:
+        - "http://localhost:3000"
+        
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      
+    allowed_headers:
+      - Content-Type
+      - Authorization
+      - X-Request-ID
+      - X-Correlation-ID
+      - Idempotency-Key
+      
+    exposed_headers:
+      - X-RateLimit-Limit
+      - X-RateLimit-Remaining
+      - X-RateLimit-Reset
+      
+    max_age: 3600
+    allow_credentials: true
+    
+  security_headers:
+    must_include:
+      - name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; object-src 'none'"
+      - name: X-Frame-Options
+        value: "DENY"
+      - name: X-Content-Type-Options
+        value: "nosniff"
+      - name: Strict-Transport-Security
+        value: "max-age=31536000; includeSubDomains"
+      - name: X-XSS-Protection
+        value: "1; mode=block"
+      - name: Referrer-Policy
+        value: "strict-origin-when-cross-origin"
+
+dependency_scanning:
+  tools:
+    - owasp_dependency_check
+    - snyk
+    
+  schedule: daily
+  
+  fail_build_on:
+    - critical_vulnerabilities
+    - high_vulnerabilities
+    
+  allow_with_review:
+    - medium_vulnerabilities
+    - low_vulnerabilities
+    
+  owasp_dependency_check:
+    gradle_command: "./gradlew dependencyCheckAnalyze"
+    report_format: html_and_json
+    
+  snyk:
+    command: "snyk test"
+    monitor: true
+    failure_threshold: medium
+    
+secrets_management:
+  tool: aws_secrets_manager
+  alternative: hashicorp_vault
+  
+  must:
+    - never_commit_secrets_to_git
+    - rotate_secrets_every_90_days
+    - use_different_secrets_per_environment
+    - audit_secret_access
+    - encrypt_secrets_at_rest
+    
+  secret_types:
+    database_credentials:
+      rotation: 90_days
+      format: username_password_json
+      
+    api_keys:
+      rotation: 180_days
+      format: plaintext_or_json
+      
+    jwt_signing_key:
+      rotation: 365_days
+      format: plaintext
+      algorithm: RS256
+      
+  access_pattern:
+    example: |
+      // Don't hardcode
+      ❌ String dbPassword = "mysecretpassword";
+      
+      // Use secrets manager
+      ✅ String dbPassword = secretsManager.getSecret("prod/db/password");
+      
+  environment_specific:
+    dev: aws_secrets_manager_dev_account
+    staging: aws_secrets_manager_staging_account
+    prod: aws_secrets_manager_prod_account

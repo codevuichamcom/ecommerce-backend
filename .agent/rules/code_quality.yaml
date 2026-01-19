@@ -1,0 +1,94 @@
+# Code quality rules - Java 21, dependencies, best practices
+
+code_quality:
+  java:
+    version: 21
+    lts: true
+    
+  java21_features:
+    prefer:
+      - record_for_dto_and_value_objects
+      - sealed_class_for_state_machines
+      - pattern_matching_in_switch
+      - switch_expressions
+      - virtual_threads_for_blocking_io
+      
+    examples:
+      record: "public record ProductDTO(String id, String name, BigDecimal price) {}"
+      sealed: "public sealed interface OrderState permits Pending, Confirmed, Shipped {}"
+      pattern_matching: "if (obj instanceof String s) { return s.toUpperCase(); }"
+      
+  must:
+    - meaningful_method_names
+    - immutable_objects_where_possible
+    - single_responsibility_principle
+    - no_god_class
+    - explicit_over_implicit
+    - fail_fast_validation
+    
+  forbid:
+    - duplicated_logic
+    - magic_numbers
+    - catch_generic_exception
+    - swallow_exception
+    - commented_out_code
+    - todo_without_ticket_reference
+
+  dependencies:
+    allow:
+      - spring-boot-starter-*
+      - lombok
+      - mapstruct
+      - micrometer-*
+      - jakarta-validation-api
+      - testcontainers
+      
+    forbid:
+      - reflection_heavy_libraries
+      - unmaintained_dependencies
+      - adding_new_lib_without_review
+      
+    review_required:
+      reason: "New dependencies increase attack surface and maintenance burden"
+
+  lombok:
+    allowed_annotations:
+      - "@Data (for entities)"
+      - "@Builder"
+      - "@RequiredArgsConstructor"
+      - "@Slf4j"
+      - "@Getter/@Setter"
+    avoid:
+      - "@SneakyThrows (hides exceptions)"
+
+  exception_handling:
+    must:
+      - use_custom_exception_hierarchy
+      - global_exception_handler
+      - meaningful_error_messages
+      
+    forbid:
+      - catch_exception_without_handling
+      - empty_catch_blocks
+      - catching_throwable
+
+  logging:
+    framework: slf4j
+    format: structured_json
+    
+    must:
+      - use_slf4j_placeholders
+      - include_correlation_id
+      - log_external_service_calls
+      - appropriate_log_levels
+      
+    forbid:
+      - string_concatenation_in_logs
+      - excessive_debug_logging_in_prod
+      - logging_in_loops
+
+naming:
+  classes: PascalCase
+  methods: camelCase
+  constants: UPPER_SNAKE_CASE
+  packages: lowercase

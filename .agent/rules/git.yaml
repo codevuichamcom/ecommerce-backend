@@ -1,0 +1,195 @@
+# Git and Branching rules - Git Flow, commit conventions, PR standards
+
+git:
+  workflow: git_flow
+  
+  branches:
+    main:
+      description: "Production-ready code"
+      protected: true
+      require_review: true
+      min_reviewers: 2
+      
+    develop:
+      description: "Integration branch for features"
+      protected: true
+      require_review: true
+      min_reviewers: 1
+      
+    feature_branches:
+      naming: "feature/{ticket-id}-{short-description}"
+      examples:
+        - "feature/ECOM-123-add-payment-service"
+        - "feature/ECOM-456-implement-saga-pattern"
+      branch_from: develop
+      merge_to: develop
+      
+    bugfix_branches:
+      naming: "bugfix/{ticket-id}-{short-description}"
+      examples:
+        - "bugfix/ECOM-789-fix-inventory-race-condition"
+      branch_from: develop
+      merge_to: develop
+      
+    hotfix_branches:
+      naming: "hotfix/{ticket-id}-{short-description}"
+      examples:
+        - "hotfix/ECOM-999-fix-payment-gateway-timeout"
+      branch_from: main
+      merge_to: 
+        - main
+        - develop
+      
+    release_branches:
+      naming: "release/{version}"
+      examples:
+        - "release/1.0.0"
+        - "release/1.1.0"
+      branch_from: develop
+      merge_to:
+        - main
+        - develop
+
+  commit_message:
+    format: conventional_commits
+    structure: |
+      <type>[optional scope]: <description>
+      
+      [optional body]
+      
+      [optional footer(s)]
+      
+    types:
+      feat: "New feature"
+      fix: "Bug fix"
+      docs: "Documentation only changes"
+      style: "Code style changes (formatting, missing semicolons, etc.)"
+      refactor: "Code refactoring without behavior change"
+      perf: "Performance improvement"
+      test: "Adding or updating tests"
+      build: "Build system or external dependency changes"
+      ci: "CI/CD configuration changes"
+      chore: "Other changes that don't modify src or test files"
+      revert: "Revert previous commit"
+      
+    scopes:
+      - api-gateway
+      - auth-service
+      - product-service
+      - inventory-service
+      - order-service
+      - payment-service
+      - notification-service
+      - common-lib
+      - infrastructure
+      - docs
+      
+    examples:
+      - "feat(order-service): implement order saga pattern"
+      - "fix(payment-service): handle timeout in payment gateway"
+      - "refactor(common-lib): extract email validation to value object"
+      - "docs: update API versioning strategy"
+      - "test(inventory-service): add integration test for stock reservation"
+      
+    must:
+      - use_imperative_mood
+      - limit_subject_to_50_characters
+      - capitalize_first_letter
+      - no_period_at_end_of_subject
+      - wrap_body_at_72_characters
+      - reference_ticket_id_in_footer
+      
+    footer_format: |
+      Refs: ECOM-123
+      Breaking-Change: Yes (if applicable)
+
+  merge_strategy:
+    feature_to_develop: squash
+    bugfix_to_develop: squash
+    hotfix_to_main: merge_commit
+    release_to_main: merge_commit
+    
+    reasons:
+      squash: "Clean history, one commit per feature/bugfix"
+      merge_commit: "Preserve full history for releases and hotfixes"
+
+  pull_request:
+    naming: "[{Type}] {Ticket-ID}: {Description}"
+    examples:
+      - "[Feature] ECOM-123: Add payment service"
+      - "[Bugfix] ECOM-456: Fix inventory race condition"
+      - "[Hotfix] ECOM-789: Fix production payment timeout"
+      
+    must_include:
+      - title_with_ticket_reference
+      - description_of_changes
+      - testing_steps
+      - checklist_completion
+      
+    template: |
+      ## Description
+      Brief description of what this PR does
+      
+      ## Type of Change
+      - [ ] Feature
+      - [ ] Bug Fix
+      - [ ] Hotfix
+      - [ ] Refactoring
+      - [ ] Documentation
+      
+      ## Changes Made
+      - Service/module affected
+      - Key implementation details
+      - API changes (if any)
+      
+      ## Testing Done
+      - [ ] Unit tests added/updated
+      - [ ] Integration tests added/updated
+      - [ ] Manual testing completed
+      - [ ] All tests passing
+      
+      ## Checklist
+      - [ ] Code follows project conventions
+      - [ ] Self-reviewed the code
+      - [ ] Commented complex code sections
+      - [ ] Updated documentation
+      - [ ] No new warnings
+      - [ ] Tests achieve required coverage
+      
+      ## Related Tickets
+      Refs: ECOM-XXX
+      
+      ## Breaking Changes
+      None / Describe if any
+      
+    review_requirements:
+      feature: 1
+      bugfix: 1
+      hotfix: 2
+      refactor: 2
+      breaking_change: 2
+
+  best_practices:
+    - "Branch early, commit often"
+    - "Keep commits atomic and focused"
+    - "Write meaningful commit messages"
+    - "Reference ticket IDs in commits"
+    - "Rebase feature branches on develop regularly"
+    - "Delete merged branches"
+    - "Use descriptive branch names"
+    - "Don't commit directly to main or develop"
+    
+  forbid:
+    - force_push_to_protected_branches
+    - merge_without_review
+    - commit_without_ticket_reference
+    - large_commits_mixing_concerns
+    - wip_commits_in_pr
+    - merge_commits_in_feature_branches
+
+  commands:
+    create_feature: "git checkout develop && git pull && git checkout -b feature/ECOM-XXX-description"
+    create_bugfix: "git checkout develop && git pull && git checkout -b bugfix/ECOM-XXX-description"
+    create_hotfix: "git checkout main && git pull && git checkout -b hotfix/ECOM-XXX-description"
+    update_branch: "git checkout develop && git pull && git checkout your-branch && git rebase develop"
+    clean_merged: "git branch --merged | grep -v '\\*\\|main\\|develop' | xargs -n 1 git branch -d"
