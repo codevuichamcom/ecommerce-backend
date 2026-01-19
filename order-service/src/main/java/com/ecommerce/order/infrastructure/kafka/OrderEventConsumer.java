@@ -95,6 +95,9 @@ public class OrderEventConsumer {
             throw new IllegalArgumentException("Event ID cannot be null or blank");
         }
         UUID uuid = UUID.fromString(eventId);
+        if (uuid == null) {
+            return false;
+        }
         return processedEventRepository.existsById(uuid);
     }
 

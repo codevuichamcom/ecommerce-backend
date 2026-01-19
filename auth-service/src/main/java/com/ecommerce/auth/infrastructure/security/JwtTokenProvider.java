@@ -4,7 +4,6 @@ import com.ecommerce.common.security.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -27,17 +26,12 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
+    private final JwtProperties jwtProperties;
     private final SecretKey secretKey;
-    private final long accessTokenValidityInSeconds;
-    private final long refreshTokenValidityInSeconds;
 
-    public JwtTokenProvider(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.access-token-validity-seconds:3600}") long accessTokenValidityInSeconds,
-            @Value("${jwt.refresh-token-validity-seconds:604800}") long refreshTokenValidityInSeconds) {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.accessTokenValidityInSeconds = accessTokenValidityInSeconds;
-        this.refreshTokenValidityInSeconds = refreshTokenValidityInSeconds;
+    public JwtTokenProvider(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+        this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -45,7 +39,7 @@ public class JwtTokenProvider {
      */
     public String generateAccessToken(String userId, String username, Set<Role> roles) {
         Instant now = Instant.now();
-        Instant expiration = now.plus(accessTokenValidityInSeconds, ChronoUnit.SECONDS);
+        Instant expiration = now.plus(jwtProperties.getAccessTokenValiditySeconds(), ChronoUnit.SECONDS);
 
         return Jwts.builder()
                 .subject(userId)
@@ -62,7 +56,7 @@ public class JwtTokenProvider {
      */
     public String generateRefreshToken(String userId) {
         Instant now = Instant.now();
-        Instant expiration = now.plus(refreshTokenValidityInSeconds, ChronoUnit.SECONDS);
+        Instant expiration = now.plus(jwtProperties.getRefreshTokenValiditySeconds(), ChronoUnit.SECONDS);
 
         return Jwts.builder()
                 .subject(userId)
@@ -164,10 +158,10 @@ public class JwtTokenProvider {
     }
 
     public long getAccessTokenValidityInSeconds() {
-        return accessTokenValidityInSeconds;
+        return jwtProperties.getAccessTokenValiditySeconds();
     }
 
     public long getRefreshTokenValidityInSeconds() {
-        return refreshTokenValidityInSeconds;
+        return jwtProperties.getRefreshTokenValiditySeconds();
     }
 }

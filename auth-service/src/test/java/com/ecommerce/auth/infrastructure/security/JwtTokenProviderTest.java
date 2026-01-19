@@ -17,7 +17,11 @@ class JwtTokenProviderTest {
 
     @BeforeEach
     void setUp() {
-        jwtTokenProvider = new JwtTokenProvider(secretKey, accessTokenValidity, refreshTokenValidity);
+        JwtProperties properties = new JwtProperties();
+        properties.setSecret(secretKey);
+        properties.setAccessTokenValiditySeconds(accessTokenValidity);
+        properties.setRefreshTokenValiditySeconds(refreshTokenValidity);
+        jwtTokenProvider = new JwtTokenProvider(properties);
     }
 
     @Test
@@ -51,6 +55,6 @@ class JwtTokenProviderTest {
     @Test
     void validateToken_ShouldReturnFalse_WhenTokenIsInvalid() {
         String invalidToken = "invalid.token.structure";
-        assertThat(jwtTokenProvider.validateToken(invalidToken)).isFalse();
+        assertThat(jwtTokenProvider.validateTokenDetailed(invalidToken).isValid()).isFalse();
     }
 }
