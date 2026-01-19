@@ -1,16 +1,7 @@
 package com.ecommerce.order.infrastructure.kafka;
 
 import com.ecommerce.common.events.InventoryEvents;
-import com.ecommerce.order.domain.model.CustomerId;
-import com.ecommerce.order.domain.model.Money;
-import com.ecommerce.order.domain.model.Order;
-import com.ecommerce.order.domain.model.OrderId;
-import com.ecommerce.order.domain.model.OrderItem;
-import com.ecommerce.order.domain.repository.OrderRepository;
-import com.ecommerce.order.domain.saga.OrderSaga;
-import com.ecommerce.order.domain.saga.OrderSagaRepository;
 import com.ecommerce.order.infrastructure.persistence.repository.ProcessedEventJpaRepository;
-import com.ecommerce.common.outbox.OutboxEventPublisher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,13 +12,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -111,10 +100,4 @@ class OrderEventConsumerTest {
         verify(processedEventRepository).save(any());
     }
 
-    private Order createTestOrder(String id) {
-        return Order.create(
-                new CustomerId("cust_123"),
-                List.of(OrderItem.create("prod_1", "Product", 1, new Money(BigDecimal.TEN, "USD"))),
-                "key_123");
-    }
 }
