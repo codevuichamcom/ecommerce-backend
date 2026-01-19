@@ -7,7 +7,6 @@ import com.ecommerce.order.infrastructure.persistence.entity.ProcessedEventEntit
 import com.ecommerce.order.infrastructure.persistence.repository.ProcessedEventJpaRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -24,7 +23,6 @@ public class OrderEventConsumer {
 
     private final OrderService orderService; // ARCH-001: Delegate to application service
     private final ProcessedEventJpaRepository processedEventRepository;
-    private final MeterRegistry meterRegistry;
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "${app.kafka.topics.inventory-events:inventory-events}", groupId = "order-service")

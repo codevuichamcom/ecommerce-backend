@@ -29,9 +29,6 @@ class OrderEventConsumerTest {
     @Mock
     private ProcessedEventJpaRepository processedEventRepository;
 
-    @Mock
-    private io.micrometer.core.instrument.MeterRegistry meterRegistry;
-
     private final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
             .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -43,7 +40,6 @@ class OrderEventConsumerTest {
         orderEventConsumer = new OrderEventConsumer(
                 orderService,
                 processedEventRepository,
-                meterRegistry,
                 objectMapper);
     }
 
