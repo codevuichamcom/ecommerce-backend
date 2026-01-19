@@ -26,8 +26,8 @@ git push origin {your-branch} --force-with-lease
 ### 3. Create Pull Request
 - **Title**: `[{Type}] {Ticket-ID}: {Description}`.
 - **Description**: Use the project standard template.
-  - Template: [.agent/templates/pr_template.md](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/templates/pr_template.md)
-- **Reviewers**: Request reviews based on [Reviewer Guidelines](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/templates/reviewer_guidelines.md).
+  - Template: [../templates/pr_template.md](../templates/pr_template.md)
+- **Reviewers**: Request reviews based on [Reviewer Guidelines](../templates/reviewer_guidelines.md).
 
 ### 4. Merge
 - **Squash & Merge**: Preferred for feature/bugfix branches.

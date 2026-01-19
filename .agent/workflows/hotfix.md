@@ -21,6 +21,12 @@ description: Production incident response for P0/P1 bugs
   ```bash
   kubectl rollout undo deployment/{service} -n prod
   ```
+  **Verify Rollback**:
+  - [ ] Service health restored (`/actuator/health` returns 200)
+  - [ ] Error rate back to baseline (<0.1%)
+  - [ ] No new errors in logs
+  - [ ] Database migrations rolled back if needed (run `V{version}_rollback.sql`)
+  
 - **Hotfix**: Use if rollback is unsafe or issue is not deployment-related.
 
 ### 3. Implementation (Hotfix)
@@ -37,7 +43,7 @@ description: Production incident response for P0/P1 bugs
 ### 5. Post-Incident
 - **Notify**: Resolution update to stakeholders.
 - **Post-Mortem**: Document within 24 hours.
-  - Template: [.agent/templates/post_mortem_template.md](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/templates/post_mortem_template.md)
+  - Template: [../templates/post_mortem_template.md](../templates/post_mortem_template.md)
 
 ## Checklist
 - [ ] Incident ticket created

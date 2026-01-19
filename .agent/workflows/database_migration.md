@@ -12,11 +12,11 @@ description: Database schema migration workflow with review and rollback strateg
 ### 1. Planning
 - **Analyze**: Determine impact on data and application uptime.
 - **Plan**: Create migration plan in `docs/migrations/`.
-  - Template: [.agent/templates/migration_plan_template.md](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/templates/migration_plan_template.md)
+  - Template: [../templates/migration_plan_template.md](../templates/migration_plan_template.md)
 
 ### 2. Implementation
 - **Script**: Write Flyway SQL script (`V{version}__{description}.sql`).
-  - Template: [.agent/templates/migration_sql_template.md](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/templates/migration_sql_template.md)
+  - Template: [../templates/migration_sql_template.md](../templates/migration_sql_template.md)
 - **Rollback**: Provide corresponding rollback script.
 - **Pattern**: Use **Expand-Contract** for breaking changes to ensure zero-downtime.
 

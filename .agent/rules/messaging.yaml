@@ -1,11 +1,15 @@
 # Messaging rules - Kafka standards, patterns, schema evolution
 
 messaging:
-  platform: apache_kafka_7.5
+  platform: confluent_platform_7.5  # Apache Kafka 3.6 + Schema Registry + Connect
   serialization: avro_with_schema_registry
 
   patterns:
-    outbox: "Must use for reliable cross-service communication"
+    outbox: 
+      description: "Must use for reliable cross-service communication"
+      retry_strategy: "Exponential backoff (1s, 2s, 4s, 8s, max 5 retries)"
+      cleanup_strategy: "Delete processed entries after 7 days (scheduled job)"
+      monitoring: "Alert if outbox backlog > 1000 or processing lag > 5 minutes"
     idempotent_consumer: "Must use to prevent duplicate processing"
     saga: "Must use for distributed transactions (Orchestration preferred)"
     

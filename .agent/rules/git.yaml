@@ -25,7 +25,7 @@ git:
 
   pull_request:
     naming: "[{Type}] {Ticket-ID}: {Description}"
-    template: [.agent/templates/pr_template.md](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/templates/pr_template.md)
+    template: ../templates/pr_template.md
     review_requirements: {feature: 1, bugfix: 1, hotfix: 2, refactor: 2, breaking: 2}
 
 best_practices:

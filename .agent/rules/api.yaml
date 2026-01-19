@@ -33,8 +33,12 @@ api:
 
   rate_limiting:
     strategy: Token_Bucket
+    storage: Redis  # Distributed rate limit state
+    key_strategy: "user_id (authenticated) or IP (anonymous)"
     tier_customer: 100req/min
     tier_admin: 1000req/min
+    response_headers: [X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset]
+    implementation: api_gateway  # Centralized at gateway level
 
 best_practices:
   - "Use plural nouns for resource names"

@@ -14,7 +14,8 @@ description: Refactoring workflow - behavior must not change
 
 ### 2. Verify Safety Net
 - Check existing test coverage: `./gradlew test jacocoTestReport`.
-- **If coverage < 70% → Write tests FIRST before refactoring.**
+- **Required coverage**: Service layer ≥70%, Domain layer ≥80%.
+- **If below threshold → Write tests FIRST before refactoring.**
 
 ### 3. Plan & Approve ⏸️
 - Describe changes and how behavior is preserved.

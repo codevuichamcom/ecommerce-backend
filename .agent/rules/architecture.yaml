@@ -37,7 +37,11 @@ services:
 
 patterns:
   required:
-    - saga_pattern_for_distributed_transactions
+    saga_pattern_for_distributed_transactions:
+      type: orchestration_preferred
+      design_template: ../templates/saga_design_template.md
+      state_persistence: required
+      compensation_timeout: 60_seconds
     - outbox_pattern_for_reliable_messaging
     - idempotent_consumer
   

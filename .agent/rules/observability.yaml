@@ -37,7 +37,7 @@ observability:
     warning_alerts: [high_memory_usage, high_cpu_usage, slow_database_queries]
     notification_channels: {critical: [pagerduty, slack_critical], warning: [slack_monitoring, email]}
     runbook_requirement: "All alerts MUST have a runbook."
-    runbook_template: [.agent/templates/runbook_template.md](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/templates/runbook_template.md)
+    runbook_template: ../templates/runbook_template.md
 
   dashboards_must_have: [service_overview, business_metrics, kafka_monitoring, database_performance, jvm_metrics]
 

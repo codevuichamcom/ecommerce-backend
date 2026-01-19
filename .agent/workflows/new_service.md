@@ -8,7 +8,7 @@ description: Creating a new microservice
 
 ### 1. Design
 - **Define**: Service responsibility, API contract, and Domain model.
-- **Template**: [.agent/templates/service_design_template.md](file:///home/sotatek/Develop/My_Self/Mordern_Java/ecommerce-backend/.agent/templates/service_design_template.md)
+- **Template**: [../templates/service_design_template.md](../templates/service_design_template.md)
 
 ### 2. Architecture Review ⏸️
 - Document design in `docs/architecture/` and get approval from Tech Lead.

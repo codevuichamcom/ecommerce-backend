@@ -25,10 +25,10 @@ This workflow guides the development of new features in the ecommerce-backend mi
   - Error responses
 - Identify events/messages needed for Kafka
 - Determine if Saga pattern is required
-- **Identify if Feature Flags are needed**:
-  - For risky changes that need a kill-switch
-  - For gradual rollout (canary) to subset of users
-  - For A/B testing requirements
+### 6. Feature Flags (Optional)
+- **When to use**: Gradual rollout, A/B testing, or risky features.
+- **Guide**: [../templates/feature_flag_guide.md](../templates/feature_flag_guide.md)
+- **Cleanup**: Remove flags after 2 sprints of 100% rollout.
 - Document design in `docs/` folder
 
 ### 3. Human Review ⏸️

@@ -35,11 +35,12 @@ code_quality:
     - todo_without_ticket_reference
 
   dependencies:
-    allow:
-      - spring-boot-starter-*
+    allowed_dependencies:
+      - spring_boot_starters
       - lombok
       - mapstruct
-      - micrometer-*
+      - micrometer
+      - unleash_client  # Feature flags (or LaunchDarkly)
       - jakarta-validation-api
       - testcontainers
       
