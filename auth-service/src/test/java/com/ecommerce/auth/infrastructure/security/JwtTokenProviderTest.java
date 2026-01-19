@@ -29,7 +29,8 @@ class JwtTokenProviderTest {
         String token = jwtTokenProvider.generateAccessToken(userId, username, roles);
 
         assertThat(token).isNotNull();
-        assertThat(jwtTokenProvider.validateToken(token)).isTrue();
+        var result = jwtTokenProvider.validateTokenDetailed(token);
+        assertThat(result.isValid()).isTrue();
         assertThat(jwtTokenProvider.getUserIdFromToken(token)).isEqualTo(userId);
         assertThat(jwtTokenProvider.getUsernameFromToken(token)).isEqualTo(username);
         assertThat(jwtTokenProvider.getRolesFromToken(token)).containsExactly(Role.CUSTOMER);
@@ -42,7 +43,8 @@ class JwtTokenProviderTest {
         String token = jwtTokenProvider.generateRefreshToken(userId);
 
         assertThat(token).isNotNull();
-        assertThat(jwtTokenProvider.validateToken(token)).isTrue();
+        var result = jwtTokenProvider.validateTokenDetailed(token);
+        assertThat(result.isValid()).isTrue();
         assertThat(jwtTokenProvider.getUserIdFromToken(token)).isEqualTo(userId);
     }
 
