@@ -35,13 +35,7 @@ import static org.mockito.Mockito.*;
 class OrderEventConsumerTest {
 
     @Mock
-    private OrderSagaRepository sagaRepository;
-
-    @Mock
-    private OrderRepository orderRepository;
-
-    @Mock
-    private OutboxEventPublisher outboxEventPublisher;
+    private com.ecommerce.order.application.service.OrderService orderService;
 
     @Mock
     private ProcessedEventJpaRepository processedEventRepository;
@@ -58,9 +52,7 @@ class OrderEventConsumerTest {
     @BeforeEach
     void setUp() {
         orderEventConsumer = new OrderEventConsumer(
-                sagaRepository,
-                orderRepository,
-                outboxEventPublisher,
+                orderService,
                 processedEventRepository,
                 meterRegistry,
                 objectMapper);
@@ -75,19 +67,13 @@ class OrderEventConsumerTest {
                 eventId, Instant.now(), null, orderIdStr);
         String message = objectMapper.writeValueAsString(event);
 
-        OrderSaga saga = OrderSaga.start(new OrderId(orderIdStr));
-        Order order = createTestOrder(orderIdStr);
-
         when(processedEventRepository.existsById(any(UUID.class))).thenReturn(false);
-        when(sagaRepository.findById(any(OrderId.class))).thenReturn(Optional.of(saga));
-        when(orderRepository.findById(any(OrderId.class))).thenReturn(Optional.of(order));
 
         // When
         orderEventConsumer.handleInventoryEvents(message);
 
         // Then
-        verify(sagaRepository).save(any(OrderSaga.class));
-        verify(outboxEventPublisher).publish(eq("Order"), eq(order.getId().value()), any());
+        verify(orderService).onInventoryReserved(orderIdStr);
         verify(processedEventRepository).save(any());
     }
 
@@ -102,8 +88,7 @@ class OrderEventConsumerTest {
         orderEventConsumer.handleInventoryEvents(message);
 
         // Then
-        verifyNoInteractions(sagaRepository);
-        verifyNoInteractions(orderRepository);
+        verify(orderService, never()).onInventoryReserved(any());
     }
 
     @Test
@@ -116,22 +101,13 @@ class OrderEventConsumerTest {
                 "cust_123", BigDecimal.TEN, "USD", "TXN-123");
         String message = objectMapper.writeValueAsString(event);
 
-        OrderSaga saga = OrderSaga.start(new OrderId(orderIdStr));
-        saga.inventoryReserved();
-        Order order = createTestOrder(orderIdStr);
-
         when(processedEventRepository.existsById(any(UUID.class))).thenReturn(false);
-        when(sagaRepository.findById(any(OrderId.class))).thenReturn(Optional.of(saga));
-        when(orderRepository.findById(any(OrderId.class))).thenReturn(Optional.of(order));
-        when(orderRepository.save(any())).thenReturn(order);
 
         // When
         orderEventConsumer.handlePaymentEvents(message);
 
         // Then
-        verify(sagaRepository).save(any(OrderSaga.class));
-        verify(orderRepository).save(any(Order.class));
-        verify(outboxEventPublisher).publish(eq("Order"), eq(order.getId().value()), any());
+        verify(orderService).onPaymentCompleted(orderIdStr);
         verify(processedEventRepository).save(any());
     }
 

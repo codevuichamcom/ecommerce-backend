@@ -48,6 +48,8 @@ public class OrderService {
 
     /**
      * Create a new order with idempotency support.
+     * CONC-001: Race condition fix - rely on database unique constraint for
+     * atomicity.
      */
     public OrderResponse createOrder(CreateOrderCommand command, String idempotencyKey) {
         log.debug("Creating order for customer {} with {} items (key: {})",
@@ -85,23 +87,34 @@ public class OrderService {
                 orderItems,
                 idempotencyKey);
 
-        var savedOrder = orderRepository.save(order);
-        OrderId orderId = savedOrder.getId();
+        // CONC-001: Handle race condition with database unique constraint
+        try {
+            var savedOrder = orderRepository.save(order);
+            OrderId orderId = savedOrder.getId();
 
-        // 4. Start Order Saga
-        var saga = OrderSaga.start(orderId);
-        sagaRepository.save(saga);
+            // 4. Start Order Saga
+            var saga = OrderSaga.start(orderId);
+            sagaRepository.save(saga);
 
-        // 5. Publish OrderCreated event via Outbox
-        publishOrderCreatedEvent(savedOrder);
+            // 5. Publish OrderCreated event via Outbox
+            publishOrderCreatedEvent(savedOrder);
 
-        // 6. Metrics
-        meterRegistry.counter("order_created_total").increment();
+            // 6. Metrics
+            meterRegistry.counter("order_created_total").increment();
 
-        log.info("Order creation initiated: {} for customer {}",
-                orderId.value(), command.customerId());
+            log.info("Order creation initiated: {} for customer {}",
+                    orderId.value(), command.customerId());
 
-        return OrderResponse.from(savedOrder);
+            return OrderResponse.from(savedOrder);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Race condition detected - another request with same idempotency key succeeded
+            log.info("Concurrent order creation detected for idempotency key: {}, fetching existing order",
+                    idempotencyKey);
+            return orderRepository.findByIdempotencyKey(idempotencyKey)
+                    .map(OrderResponse::from)
+                    .orElseThrow(() -> new RuntimeException(
+                            "Order creation failed and existing order not found for key: " + idempotencyKey));
+        }
     }
 
     private void publishOrderCreatedEvent(Order order) {
@@ -181,4 +194,113 @@ public class OrderService {
                 .orElseThrow(() -> new NotFoundException("Order", id));
     }
 
+    /**
+     * ARCH-001: Application service methods for event handling (moved from
+     * infrastructure layer)
+     */
+
+    /**
+     * Handle inventory reservation success event.
+     * Moves saga to next state and publishes payment request.
+     */
+    @Transactional
+    public void onInventoryReserved(String orderId) {
+        log.info("Handling inventory reserved for order {}", orderId);
+        OrderId orderIdObj = new OrderId(orderId);
+
+        sagaRepository.findById(orderIdObj).ifPresent(saga -> {
+            saga.inventoryReserved();
+            sagaRepository.save(saga);
+
+            // Fetch order and publish PaymentRequested
+            orderRepository.findById(orderIdObj).ifPresent(this::publishPaymentRequested);
+        });
+    }
+
+    /**
+     * Handle inventory reservation failure event.
+     * Cancels order and moves saga to failed state.
+     */
+    @Transactional
+    public void onInventoryFailed(String orderId, String reason) {
+        log.warn("Handling inventory reservation failed for order {}: {}", orderId, reason);
+        OrderId orderIdObj = new OrderId(orderId);
+
+        sagaRepository.findById(orderIdObj).ifPresent(saga -> {
+            saga.inventoryFailed(reason);
+            sagaRepository.save(saga);
+
+            orderRepository.findById(orderIdObj).ifPresent(order -> {
+                order.cancel("Insufficient stock: " + reason);
+                orderRepository.save(order);
+            });
+        });
+    }
+
+    /**
+     * Handle payment completion event.
+     * Confirms order and completes saga.
+     */
+    @Transactional
+    public void onPaymentCompleted(String orderId) {
+        log.info("Handling payment completed for order {}", orderId);
+        OrderId orderIdObj = new OrderId(orderId);
+
+        sagaRepository.findById(orderIdObj).ifPresent(saga -> {
+            saga.paymentCompleted();
+            saga.complete();
+            sagaRepository.save(saga);
+
+            orderRepository.findById(orderIdObj).ifPresent(order -> {
+                order.confirm();
+                orderRepository.save(order);
+
+                // Publish OrderConfirmed event
+                publishOrderConfirmed(order);
+
+                // Metrics
+                meterRegistry.counter("order_completed_total").increment();
+            });
+        });
+    }
+
+    /**
+     * Handle payment failure event.
+     * Starts compensation and cancels order.
+     */
+    @Transactional
+    public void onPaymentFailed(String orderId, String reason) {
+        log.warn("Handling payment failed for order {}: {}", orderId, reason);
+        OrderId orderIdObj = new OrderId(orderId);
+
+        sagaRepository.findById(orderIdObj).ifPresent(saga -> {
+            saga.paymentFailed(reason);
+            saga.startCompensating();
+            sagaRepository.save(saga);
+
+            orderRepository.findById(orderIdObj).ifPresent(order -> {
+                order.cancel("Payment failed: " + reason);
+                orderRepository.save(order);
+            });
+        });
+    }
+
+    private void publishPaymentRequested(Order order) {
+        com.ecommerce.common.events.PaymentEvents.PaymentRequested event = com.ecommerce.common.events.PaymentEvents.PaymentRequested
+                .create(
+                        order.getId().value(),
+                        order.getCustomerId().value(),
+                        order.getTotalAmount().amount(),
+                        order.getTotalAmount().currency());
+        outboxEventPublisher.publish("Order", order.getId().value(), event);
+    }
+
+    private void publishOrderConfirmed(Order order) {
+        OrderEvents.OrderConfirmed event = OrderEvents.OrderConfirmed.create(
+                order.getId().value(),
+                order.getCustomerId().value(),
+                order.getTotalAmount().amount(),
+                order.getTotalAmount().currency());
+        outboxEventPublisher.publish("Order", order.getId().value(), event);
+    }
 }
