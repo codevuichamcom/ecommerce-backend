@@ -1,163 +1,47 @@
-# API design rules - REST conventions, error handling, versioning
+# API Design rules - REST, versioning, error handling, documentation
 
 api:
-  gateway:
-    service: api-gateway
-    port: 8080
-    entry_point: "All external requests go through gateway"
-    
-  design:
-    style: restful
-    
-    must:
-      - follow_restful_conventions
-      - use_http_verbs_correctly
-      - consistent_error_response_format
-      - use_problem_details_rfc7807
-      - idempotency_key_for_mutations
-      - pagination_for_list_endpoints
-      
-    http_methods:
-      GET: "Retrieve resources, idempotent, no side effects"
-      POST: "Create resources, use Idempotency-Key header"
-      PUT: "Full update, idempotent"
-      PATCH: "Partial update"
-      DELETE: "Remove resources, idempotent"
-      
-  documentation:
-    prefer: openapi_annotations
-    tools:
-      - springdoc_openapi
-    
+  conventions: RESTful
+  format: JSON
+  
   versioning:
-    strategy: path_based
-    format: "/api/v{version}/{resource}"
-    current_version: v1
-    
-    examples:
-      - "/api/v1/products"
-      - "/api/v1/orders"
-      - "/api/v2/products"  # when v2 is released
-      
-    deprecation_policy:
-      sunset_period: 6_months
-      process:
-        - announce_deprecation_3_months_before
-        - add_sunset_header_to_responses
-        - update_documentation
-        - notify_api_consumers
-        - remove_after_sunset_period
-        
-      sunset_header:
-        example: 'Sunset: Sat, 31 Jul 2026 23:59:59 GMT'
-        
-    backward_compatibility:
-      must:
-        - support_old_version_during_sunset
-        - document_breaking_changes
-        - provide_migration_guide
-        
-    version_increment:
-      v1_to_v2: breaking_changes
-      v1_1: backward_compatible_additions
-      
-    examples:
-      - "v1 → v2: Changed order status enum values"
-      - "v1 → v1.1: Added optional 'description' field (backward compatible)"
-      
+    strategy: URI_versioning
+    format: "/api/v{number}/..."
+    deprecation_policy: "Maintain at least 1 previous version for 6 months"
+
+  naming_conventions:
+    endpoints: kebab-case
+    json_fields: camelCase
+    query_params: camelCase
+
+  headers_required:
+    mutations: [Idempotency-Key]
+    tracing: [X-Correlation-ID]
+
   error_handling:
-    format: rfc7807_problem_details
-    must_include:
-      - type
-      - title
-      - status
-      - detail
-      - instance
-    example: |
-      {
-        "type": "https://api.ecommerce.com/errors/insufficient-stock",
-        "title": "Insufficient Stock",
-        "status": 400,
-        "detail": "Product SKU-123 has only 5 items in stock",
-        "instance": "/orders/12345"
-      }
-      
+    format: RFC_7807_Problem_Details
+    must_include: [type, title, status, detail, instance, timestamp]
+
   pagination:
-    strategy: cursor_based_preferred
-    
-    cursor_based:
-      use_for: large_datasets
-      example: |
-        GET /api/v1/products?cursor=eyJpZCI6MTAwfQ&limit=20
-        
-        Response:
-        {
-          "data": [...],
-          "pagination": {
-            "nextCursor": "eyJpZCI6MTIwfQ",
-            "hasMore": true,
-            "limit": 20
-          }
-        }
-        
-    offset_based:
-      use_for: small_datasets_with_count_needed
-      example: |
-        GET /api/v1/products?page=1&size=20
-        
-        Response:
-        {
-          "data": [...],
-          "pagination": {
-            "page": 1,
-            "size": 20,
-            "totalPages": 10,
-            "totalElements": 200
-          }
-        }
-        
-    limits:
-      default_page_size: 20
-      max_page_size: 100
-      
+    strategies: [Cursor-based (preferred), Offset-based]
+    default_page_size: 20
+    max_page_size: 100
+
+  documentation:
+    tool: SpringDoc_OpenAPI (Swagger)
+    path: /swagger-ui.html
+
   rate_limiting:
-    strategy: token_bucket
-    
-    limits:
-      authenticated_user: 1000_per_hour
-      anonymous_user: 100_per_hour
-      
-    headers:
-      - "X-RateLimit-Limit: 1000"
-      - "X-RateLimit-Remaining: 950"
-      - "X-RateLimit-Reset: 1642694400"
-      
-    response_when_exceeded:
-      status: 429
-      body: |
-        {
-          "type": "https://api.ecommerce.com/errors/rate-limit-exceeded",
-          "title": "Rate Limit Exceeded",
-          "status": 429,
-          "detail": "You have exceeded the rate limit of 1000 requests per hour",
-          "instance": "/api/v1/products"
-        }
-      
-  forbid:
-    - breaking_change_without_deprecation
-    - expose_internal_ids_without_reason
-    - inconsistent_naming_conventions
-    - returning_500_for_validation_errors
-    - exposing_stack_traces
+    strategy: Token_Bucket
+    tier_customer: 100req/min
+    tier_admin: 1000req/min
 
-naming_conventions:
-  endpoints: "kebab-case (/product-categories)"
-  json_fields: "camelCase (productName)"
-  query_params: "camelCase (sortBy=price)"
+best_practices:
+  - "Use plural nouns for resource names"
+  - "Always return appropriate HTTP status codes"
+  - "Validate all inputs at the entry point"
 
-headers:
-  required_for_mutations:
-    - "Idempotency-Key"
-  recommended:
-    - "X-Correlation-ID"
-    - "X-Request-ID"
+forbid:
+  - breaking_changes_without_version_increment
+  - returning_sensitive_data_in_api
+  - verbs_in_uri_paths (use HTTP methods instead)

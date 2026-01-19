@@ -4,248 +4,57 @@ ci_cd:
   pipeline_tool: github_actions
   
   build_pipeline:
-    triggers:
-      - push_to_feature_branch
-      - pull_request_to_develop
-      - pull_request_to_main
-      
+    triggers: [push_to_feature, pr_to_develop, pr_to_main]
     stages:
       - name: compile
-        description: "Compile all services"
         command: "./gradlew clean build -x test"
-        fail_on_error: true
-        
       - name: unit_test
-        description: "Run unit tests"
         command: "./gradlew test"
-        fail_on_error: true
         coverage_threshold: 70
-        
       - name: integration_test
-        description: "Run integration tests with Testcontainers"
         command: "./gradlew integrationTest"
-        fail_on_error: true
-        
-      - name: coverage_report
-        description: "Generate and verify coverage"
-        command: "./gradlew jacocoTestCoverageVerification"
-        fail_on_error: true
-        
       - name: static_analysis
-        description: "Run SonarQube analysis"
-        tools:
-          - sonarqube
-          - spotbugs
-          - checkstyle
-        fail_on:
-          - bugs
-          - vulnerabilities
-          - code_smells_blocker
+        tools: [sonarqube, checkstyle]
         quality_gate: must_pass
-        
-      - name: dependency_check
-        description: "Scan dependencies for vulnerabilities"
-        tools:
-          - owasp_dependency_check
-          - snyk
-        fail_on:
-          - critical_vulnerabilities
-          - high_vulnerabilities
-        allow:
-          - medium_vulnerabilities_with_review
-          
-      - name: docker_build
-        description: "Build Docker images"
-        command: "docker build -t service:${VERSION} ."
-        only_on:
-          - develop
-          - main
-          - release/*
-          
-      - name: docker_scan
-        description: "Scan Docker images for vulnerabilities"
+      - name: dependency_scan
+        tools: [owasp_dependency_check, snyk]
+        fail_on: [critical, high]
+      - name: docker_build_scan
         tool: trivy
-        fail_on:
-          - critical_vulnerabilities
-          - high_vulnerabilities
+        images_on: [develop, main, release/*]
 
   deployment_strategy:
-    development:
-      environment: dev
-      trigger: merge_to_develop
-      auto_deploy: true
-      strategy: rolling_update
-      
-    staging:
-      environment: staging
-      trigger: manual_or_release_branch
-      auto_deploy: false
-      strategy: blue_green
-      require_approval: true
-      approvers:
-        - tech_lead
-        - qa_lead
-        
-    production:
-      environment: prod
-      trigger: merge_to_main
-      auto_deploy: false
-      strategy: canary
-      require_approval: true
-      approvers:
-        - tech_lead
-        - product_owner
-      canary_steps:
-        - percent: 10
-          duration: 30m
-          monitor_metrics:
-            - error_rate
-            - latency_p95
-            - cpu_usage
-        - percent: 50
-          duration: 1h
-        - percent: 100
+    development: {trigger: auto_merge, strategy: rolling_update}
+    staging: {trigger: manual, strategy: blue_green, require_approval: [tech_lead, qa_lead]}
+    production: {trigger: manual, strategy: canary, require_approval: [tech_lead, PO]}
 
-  deployment_patterns:
-    blue_green:
-      description: "Two identical environments, switch traffic"
-      use_for:
-        - staging
-      benefits:
-        - instant_rollback
-        - zero_downtime
-        
-    canary:
-      description: "Gradual rollout to subset of users"
-      use_for:
-        - production
-      benefits:
-        - reduced_blast_radius
-        - early_issue_detection
-        
-    rolling_update:
-      description: "Replace instances one by one"
-      use_for:
-        - development
-      benefits:
-        - simple
-        - resource_efficient
-
-  environment_promotion:
-    flow: dev → staging → production
-    
-    dev_to_staging:
-      trigger: release_branch_created
-      require:
-        - all_tests_passing
-        - code_review_approved
-        - qa_sign_off
-        
-    staging_to_production:
-      trigger: manual
-      require:
-        - all_tests_passing
-        - qa_full_regression_pass
-        - security_scan_pass
-        - performance_test_pass
-        - tech_lead_approval
-        - product_owner_approval
+  environment_promotion: dev → staging → production
 
   rollback_procedure:
-    automatic_triggers:
-      - error_rate_above_threshold: 5%
-      - latency_p95_above_threshold: 2000ms
-      - health_check_failing
-      
-    manual_triggers:
-      - critical_bug_discovered
-      - data_corruption_detected
-      
-    steps:
-      - stop_deployment
-      - revert_to_previous_version
-      - notify_team
-      - create_incident_report
-      - root_cause_analysis
+    automatic: [error_rate > 5%, latency_p95 > 2000ms, health_failing]
+    manual: [critical_bug, data_corruption]
 
   versioning:
-    scheme: semantic_versioning
-    format: "MAJOR.MINOR.PATCH"
-    
-    increment_rules:
-      MAJOR: breaking_api_changes
-      MINOR: new_features_backward_compatible
-      PATCH: bug_fixes
-      
-    examples:
-      - "1.0.0 - Initial release"
-      - "1.1.0 - Add notification service"
-      - "1.1.1 - Fix payment gateway timeout"
-      - "2.0.0 - Remove deprecated API v1"
-      
-    tagging:
-      format: "v{MAJOR}.{MINOR}.{PATCH}"
-      examples:
-        - v1.0.0
-        - v1.1.0
-        - v2.0.0
+    scheme: semantic_versioning (MAJOR.MINOR.PATCH)
+    tag_format: "v{MAJOR}.{MINOR}.{PATCH}"
 
-  monitoring:
-    must_monitor:
-      - build_success_rate
-      - test_pass_rate
-      - deployment_frequency
-      - mean_time_to_recovery
-      - lead_time_for_changes
-      - change_failure_rate
-      
-    alerts:
-      - build_failure
-      - test_failure
-      - deployment_failure
-      - rollback_triggered
+  monitoring_metrics: [build_success_rate, deployment_frequency, MTTR, change_failure_rate]
 
   secrets_management:
     tool: aws_secrets_manager_or_vault
-    
-    must:
-      - rotate_secrets_regularly
-      - encrypt_secrets_at_rest
-      - use_iam_roles_not_keys
-      - audit_secret_access
-      
-    forbid:
-      - secrets_in_code
-      - secrets_in_environment_files_in_git
-      - sharing_secrets_via_slack_email
+    rules: [rotate_regularly, encrypt_at_rest, audit_access]
+    forbid: [secrets_in_code, secrets_in_git]
 
   infrastructure_as_code:
     tool: terraform_or_cloudformation
-    
-    must:
-      - version_control_all_infra
-      - use_modules_for_reusability
-      - apply_only_after_plan_review
-      - use_remote_state_backend
-      
-    environments:
-      dev: separate_aws_account
-      staging: separate_aws_account
-      prod: separate_aws_account_with_strict_access
+    rules: [version_control_all_infra, use_remote_state]
 
-  best_practices:
-    - "Fail fast - run quick tests first"
-    - "Cache dependencies to speed up builds"
-    - "Run tests in parallel where possible"
-    - "Keep pipeline configuration in code (as YAML)"
-    - "Monitor pipeline metrics"
-    - "Automate everything"
-    - "Use feature flags for gradual rollouts"
-    - "Always have a rollback plan"
+best_practices:
+  - "Fail fast - run quick tests first"
+  - "Cache dependencies to speed up builds"
+  - "Always have a rollback plan"
 
-  forbid:
-    - manual_deployments_to_production
-    - skipping_tests_to_speed_up_pipeline
-    - deploying_without_version_tag
-    - shared_credentials_across_environments
-    - deploying_on_friday_afternoon
+forbid:
+  - manual_deployments_to_production
+  - skipping_tests_to_speed_up_pipeline
+  - deploying_on_friday_afternoon

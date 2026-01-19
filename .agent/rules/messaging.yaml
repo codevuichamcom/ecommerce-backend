@@ -1,224 +1,47 @@
-# Kafka & Event-driven rules
+# Messaging rules - Kafka standards, patterns, schema evolution
 
 messaging:
-  broker: kafka
-  version: "7.5"
-  
-  patterns:
-    must_use:
-      - outbox_pattern_for_reliability
-      - idempotent_consumer
-      - saga_pattern_for_distributed_transactions
-      
-    reasons:
-      outbox: "Ensures atomicity between DB write and event publish"
-      idempotent: "Handles duplicate message delivery"
-      saga: "Manages distributed transactions across services"
-      
-  topics:
-    naming_convention: "{domain}.{event-type}"
-    examples:
-      - "order.created"
-      - "payment.completed"
-      - "inventory.reserved"
-      - "notification.sent"
-      
-  events:
-    format: json
-    must_include:
-      - eventId
-      - eventType
-      - timestamp
-      - aggregateId
-      - payload
-      
-    example: |
-      {
-        "eventId": "uuid",
-        "eventType": "order.created",
-        "timestamp": "2026-01-19T14:00:00Z",
-        "aggregateId": "order-123",
-        "payload": { ... }
-      }
-      
-  producer:
-    must:
-      - use_outbox_pattern
-      - include_idempotency_key
-      - handle_publish_failures
-      
-    forbid:
-      - direct_kafka_publish_without_outbox
-      - synchronous_waiting_for_consumer
-      
-  consumer:
-    must:
-      - handle_duplicate_messages
-      - implement_dead_letter_queue
-      - use_proper_error_handling
-      - commit_offset_after_processing
-      
-    retry_strategy:
-      - exponential_backoff
-      - max_retries: 3
-      - dead_letter_after_max_retries
-      
-  saga:
-    orchestration_vs_choreography: choreography_preferred
-    
-    must:
-      - define_compensating_transactions
-      - handle_partial_failures
-      - idempotent_saga_steps
-      
-    forbid:
-      - synchronous_cross_service_calls_in_saga
-      - infinite_retry_loops
+  platform: apache_kafka_7.5
+  serialization: avro_with_schema_registry
 
-  services_using_kafka:
-    - order-service
-    - payment-service
-    - inventory-service
-    - notification-service
+  patterns:
+    outbox: "Must use for reliable cross-service communication"
+    idempotent_consumer: "Must use to prevent duplicate processing"
+    saga: "Must use for distributed transactions (Orchestration preferred)"
+    
+  topic_naming:
+    convention: "{domain}.{event_type}"
+    examples: [order.created, payment.completed, inventory.reserved]
+
+  event_structure:
+    must_include: [eventId, eventType, timestamp, correlationId, payload, metadata]
+
+  producer_rules:
+    acknowledgment: all
+    retries: 3
+    compression: snappy
+    max_message_size: 1MB
+
+  consumer_rules:
+    group_id: "{service_name}-group"
+    auto_offset_reset: earliest
+    error_handling: [dlq, retry_topic_with_backoff]
+    concurrency: base_on_partitions
 
   schema_evolution:
-    format: avro_recommended
-    alternative: json_with_versioning
-    
-    avro_benefits:
-      - schema_validation
-      - backward_forward_compatibility
-      - smaller_message_size
-      - schema_registry_integration
-      
-    schema_registry:
-      tool: confluent_schema_registry
-      url: "http://schema-registry:8081"
-      
-    compatibility_modes:
-      backward: new_schema_can_read_old_data
-      forward: old_schema_can_read_new_data
-      full: both_backward_and_forward
-      
-    versioning_strategy: semantic_versioning
-    
-    example_evolution: |
-      // v1 - Original schema
-      {
-        "type": "record",
-        "name": "OrderCreated",
-        "fields": [
-          {"name": "orderId", "type": "string"},
-          {"name": "customerId", "type": "string"},
-          {"name": "totalAmount", "type": "double"}
-        ]
-      }
-      
-      // v2 - Add optional field (backward compatible)
-      {
-        "type": "record",
-        "name": "OrderCreated",
-        "fields": [
-          {"name": "orderId", "type": "string"},
-          {"name": "customerId", "type": "string"},
-          {"name": "totalAmount", "type": "double"},
-          {"name": "currency", "type": "string", "default": "USD"}  // new optional field
-        ]
-      }
-      
-  message_limits:
-    max_message_size: 1_mb
-    recommended_size: "< 100kb"
-    
-    exceed_limit_strategy:
-      - store_large_payload_in_s3
-      - put_s3_reference_in_message
-      - consumer_fetches_from_s3
-      
-    example: |
-      // Don't: Send large binary in Kafka message
-      ❌ {
-        "orderId": "123",
-        "invoice_pdf": "base64_encoded_10mb_pdf..."
-      }
-      
-      // Do: Send reference to S3
-      ✅ {
-        "orderId": "123",
-        "invoice_url": "s3://invoices/order-123.pdf"
-      }
-      
-  consumer_lag_monitoring:
-    must_monitor:
-      - current_offset
-      - committed_offset
-      - lag_in_messages
-      - lag_in_time
-      
-    alerting:
-      warning: lag > 1000_messages
-      critical: lag > 10000_messages
-      
-    tools:
-      - kafka_manager
-      - burrow
-      - prometheus_kafka_exporter
-      
-    metrics: |
-      kafka_consumer_lag{group="order-processor",topic="order.created",partition="0"}
-      kafka_consumer_lag_seconds{group="order-processor",topic="order.created"}
-      
-  partition_strategy:
-    default: partition_by_key
-    
-    strategies:
-      by_entity_id:
-        description: "Same entity always goes to same partition"
-        example: "orderId as key → guarantees order for same order"
-        use_for:
-          - order_events
-          - user_events
-          
-      by_customer_id:
-        description: "All events for customer in same partition"
-        example: "customerId as key"
-        use_for:
-          - customer_activity
-          - notification_events
-          
-      round_robin:
-        description: "Distribute evenly, no key"
-        use_for:
-          - logging_events
-          - metrics_events
-          
-    partition_count:
-      consideration_factors:
-        - expected_throughput
-        - number_of_consumers
-        - data_retention_period
-        - desire_for_parallelism
-        
-      recommendations:
-        low_traffic: 3_partitions
-        medium_traffic: 10_partitions
-        high_traffic: 30_partitions
-        
-      warning: "Increasing partitions is easy, decreasing is hard"
-      
-    ordering_guarantees:
-      within_partition: guaranteed
-      across_partitions: not_guaranteed
-      
-      example: |
-        // Guaranteed order within same order
-        key = orderId
-        partition = hash(orderId) % numPartitions
-        // All events for order-123 go to same partition
-        
+    mode: forward_compatibility
+    registry: Confluent Schema Registry
+
+  monitoring:
+    must_track: [consumer_lag, message_size, throughput, error_rate]
+    alert_on: {lag > 10000, dlq_messages > 0}
+
 best_practices:
-  - "Use Outbox pattern for reliable event publishing"
-  - "Make consumers idempotent"
-  - "Design compensating transactions for Saga"
-  - "Monitor consumer lag"
-  - "Use correlation IDs for tracing"
+  - "Design for failure - consumers should be idempotent"
+  - "Keep event payloads small - use claim-check pattern for large data"
+  - "Use correlation IDs to trace message flows"
+
+forbid:
+  - large_messages_over_1MB
+  - non_standard_topic_naming
+  - manual_partition_assignment

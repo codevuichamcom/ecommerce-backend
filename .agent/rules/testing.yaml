@@ -1,214 +1,48 @@
-# Testing rules - coverage, tools, patterns
+# Testing rules - Unit, integration, contract, performance, chaos
 
 testing:
-  framework: junit5
-  build_tool: gradle
-  
-  required:
-    - unit_test_for_service_layer
-    - unit_test_for_domain_logic
-    - test_for_critical_paths
-    
-  recommended:
-    - integration_test_with_testcontainers
-    - contract_test_for_api
-    
-  advanced:
-    - end_to_end_test
-    - performance_test
-    - chaos_test
-    
-  coverage:
-    tool: jacoco
-    version: "0.8.12"
-    threshold:
-      service_layer: 70
-      domain_layer: 80
-      overall: 70
-    exclude:
-      - dto
-      - entity
-      - config
-      - application_main_class
-      - exception_classes
-      
-  mocking:
-    framework: mockito
-    prefer: mockito_over_powermock
-    
-  patterns:
-    naming:
-      - given_when_then
-      - arrange_act_assert
-    structure:
-      - one_test_class_per_production_class
-      - test_methods_describe_behavior
-      
-  integration_tests:
-    use: testcontainers
-    containers:
-      - postgresql
-      - redis
-      - kafka
-      
-  contract_testing:
-    framework: pact
-    purpose: verify_api_contracts_between_services
-    
-    provider_services:
-      - product-service
-      - inventory-service
-      - order-service
-      - payment-service
-      
-    consumer_services:
-      - order-service
-      - api-gateway
-      
-    workflow:
-      - consumer_defines_expectations
-      - consumer_publishes_pact
-      - provider_verifies_pact
-      - contract_test_runs_in_ci
-      
-    example: |
-      // Consumer test (order-service)
-      @Pact(consumer = "order-service", provider = "product-service")
-      public RequestResponsePact createPact(PactDslWithProvider builder) {
-        return builder
-          .given("product exists")
-          .uponReceiving("get product")
-          .path("/api/v1/products/123")
-          .method("GET")
-          .willRespondWith()
-          .status(200)
-          .body(new PactDslJsonBody()
-            .stringType("id", "123")
-            .stringType("name", "Laptop")
-            .decimalType("price", 999.99))
-          .toPact();
-      }
-      
-  performance_testing:
-    tool: gatling_or_jmeter
-    frequency: before_major_releases
-    
-    must_test:
-      - api_endpoints_under_load
-      - database_query_performance
-      - kafka_throughput
-      
-    load_test_scenarios:
-      - name: baseline
-        users: 100
-        duration: 10m
-        ramp_up: 1m
-        
-      - name: stress_test
-        users: 1000
-        duration: 30m
-        ramp_up: 5m
-        
-      - name: spike_test
-        users: "100 to 1000 instantly"
-        duration: 5m
-        
-      - name: endurance_test
-        users: 500
-        duration: 4h
-        
-    acceptance_criteria:
-      latency_p95: 500ms
-      latency_p99: 1000ms
-      error_rate: "< 0.1%"
-      throughput: "≥ 1000 rps per service"
-      
-    gatling_example: |
-      val scn = scenario("Product API Load Test")
-        .exec(http("Get Products")
-          .get("/api/v1/products")
-          .check(status.is(200))
-          .check(jsonPath("$.data").exists))
-        .pause(1)
-        
-      setUp(
-        scn.inject(rampUsers(1000) during (5 minutes))
-      ).protocols(http.baseUrl("https://api.ecommerce.com"))
-      
-  end_to_end_testing:
-    tool: selenium_or_playwright
-    scope: critical_user_flows
-    
-    critical_flows:
-      - user_registration_and_login
-      - browse_products
-      - add_to_cart_and_checkout
-      - payment_processing
-      - order_confirmation_email
-      
-    when_to_run:
-      - before_production_release
-      - after_major_features
-      - nightly_in_staging
-      
-    example_flow: |
-      @Test
-      public void testCheckoutFlow() {
-        // 1. Login
-        loginPage.login("user@example.com", "password");
-        
-        // 2. Browse products
-        homePage.navigateToProducts();
-        
-        // 3. Add to cart
-        productPage.addToCart("Laptop");
-        
-        // 4. Checkout
-        cartPage.proceedToCheckout();
-        
-        // 5. Payment
-        checkoutPage.enterPaymentDetails(creditCard);
-        checkoutPage.placeOrder();
-        
-        // 6. Verify order confirmation
-        assertThat(orderConfirmationPage.getOrderId()).isNotNull();
-      }
-      
-  chaos_testing:
-    tool: chaos_monkey_for_spring_boot
-    environment: staging_only
-    
-    chaos_experiments:
-      - kill_random_service_instance
-      - introduce_latency_to_database
-      - simulate_kafka_failures
-      - fill_disk_space
-      - network_partition
-      
-    schedule: weekly_in_staging
-    
-    chaos_monkey_config: |
-      chaos.monkey.enabled=true
-      chaos.monkey.assaults.level=5
-      chaos.monkey.assaults.latencyActive=true
-      chaos.monkey.assaults.exceptionsActive=true
-      chaos.monkey.assaults.killApplicationActive=false  # too dangerous
-      
-    objectives:
-      - verify_circuit_breakers_work
-      - test_retry_logic
-      - validate_fallback_mechanisms
-      - ensure_graceful_degradation
-      
-  best_practices:
-    - "Test behavior, not implementation"
-    - "Keep tests independent"
-    - "Use meaningful test names"
-    - "Avoid testing framework code"
-    - "Mock external dependencies"
-    - "Use @Transactional for DB tests"
+  frameworks:
+    unit: JUnit 5
+    mocking: Mockito
+    assertion: AssertJ
+    integration: Testcontainers
+    contract: Pact
+    performance: Gatling / k6
+    chaos: Chaos Monkey for Spring Boot
 
-commands:
-  run_all_tests: "./gradlew test"
-  run_with_coverage: "./gradlew test jacocoTestReport"
-  verify_coverage: "./gradlew test jacocoTestCoverageVerification"
+  naming_convention: given_{scenario}_when_{action}_then_{result}
+
+  coverage_thresholds:
+    service_layer: 70
+    domain_layer: 80
+    infrastructure_layer: 50
+
+  patterns:
+    - Triple A (Arrange, Act, Assert)
+    - Test Driven Development (TDD) encouraged
+
+  integration_testing:
+    use_testcontainers_for: [PostgreSQL, Redis, Kafka]
+    scope: "Business logic spanning multiple components/persistence"
+
+  contract_testing:
+    required_for: "All service-to-service communication via REST/Kafka"
+    consumer_side: "Define pacts"
+    provider_side: "Verify pacts"
+
+  performance_testing:
+    scope: "Critical paths: Search, Cart, Checkout"
+    must_track: [latency_p95, throughput, error_rate]
+
+  chaos_testing:
+    rules: "Test resilience against: DB latency, Kafka Down, Service Down"
+
+best_practices:
+  - "Tests should be independent and repeatable"
+  - "No flaky tests - investigate and fix or delete"
+  - "Mock external dependencies, use real DB for integration tests"
+
+forbid:
+  - skipping_tests_in_ci
+  - production_code_in_tests
+  - hardcoded_absolute_paths_in_tests
