@@ -12,7 +12,7 @@ import com.ecommerce.payment.domain.repository.PaymentRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import com.ecommerce.payment.infrastructure.config.PaymentProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,21 +34,18 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OutboxEventPublisher outboxEventPublisher;
     private final MeterRegistry meterRegistry;
+    private final PaymentProperties paymentProperties;
     private final Random random = new Random();
-
-    @Value("${payment.processing.delay-ms:500}")
-    private long processingDelayMs;
-
-    @Value("${payment.processing.simulated-failure-rate:0.1}")
-    private double simulatedFailureRate;
 
     public PaymentService(
             PaymentRepository paymentRepository,
             OutboxEventPublisher outboxEventPublisher,
-            MeterRegistry meterRegistry) {
+            MeterRegistry meterRegistry,
+            PaymentProperties paymentProperties) {
         this.paymentRepository = paymentRepository;
         this.outboxEventPublisher = outboxEventPublisher;
         this.meterRegistry = meterRegistry;
+        this.paymentProperties = paymentProperties;
     }
 
     /**
@@ -69,7 +66,7 @@ public class PaymentService {
             simulatePaymentProcessing();
 
             // Random failure for testing
-            if (random.nextDouble() < simulatedFailureRate) {
+            if (random.nextDouble() < paymentProperties.getProcessing().getSimulatedFailureRate()) {
                 throw new RuntimeException("Simulated payment failure");
             }
 
@@ -213,7 +210,7 @@ public class PaymentService {
 
     private void simulatePaymentProcessing() {
         try {
-            Thread.sleep(processingDelayMs);
+            Thread.sleep(paymentProperties.getProcessing().getDelayMs());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

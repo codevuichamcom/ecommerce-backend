@@ -88,6 +88,9 @@ class OrderServiceTest {
                 when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
                 when(productService.getProduct(productId)).thenReturn(productDetails);
                 when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+                when(sagaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+                when(meterRegistry.counter(anyString(), any(String[].class)))
+                                .thenReturn(mock(io.micrometer.core.instrument.Counter.class));
 
                 // When
                 OrderResponse response = orderService.createOrder(createCommand, idempotencyKey);

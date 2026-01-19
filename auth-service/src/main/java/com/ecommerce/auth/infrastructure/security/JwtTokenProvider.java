@@ -4,7 +4,6 @@ import com.ecommerce.common.security.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -27,17 +26,12 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
+    private final JwtProperties jwtProperties;
     private final SecretKey secretKey;
-    private final long accessTokenValidityInSeconds;
-    private final long refreshTokenValidityInSeconds;
 
-    public JwtTokenProvider(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.access-token-validity-seconds:3600}") long accessTokenValidityInSeconds,
-            @Value("${jwt.refresh-token-validity-seconds:604800}") long refreshTokenValidityInSeconds) {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.accessTokenValidityInSeconds = accessTokenValidityInSeconds;
-        this.refreshTokenValidityInSeconds = refreshTokenValidityInSeconds;
+    public JwtTokenProvider(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+        this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -45,7 +39,7 @@ public class JwtTokenProvider {
      */
     public String generateAccessToken(String userId, String username, Set<Role> roles) {
         Instant now = Instant.now();
-        Instant expiration = now.plus(accessTokenValidityInSeconds, ChronoUnit.SECONDS);
+        Instant expiration = now.plus(jwtProperties.getAccessTokenValiditySeconds(), ChronoUnit.SECONDS);
 
         return Jwts.builder()
                 .subject(userId)
@@ -62,7 +56,7 @@ public class JwtTokenProvider {
      */
     public String generateRefreshToken(String userId) {
         Instant now = Instant.now();
-        Instant expiration = now.plus(refreshTokenValidityInSeconds, ChronoUnit.SECONDS);
+        Instant expiration = now.plus(jwtProperties.getRefreshTokenValiditySeconds(), ChronoUnit.SECONDS);
 
         return Jwts.builder()
                 .subject(userId)
@@ -73,18 +67,51 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Validate token signature and expiration.
+     * CQ-003: Token validation result with detailed error information.
      */
-    public boolean validateToken(String token) {
+    public record TokenValidationResult(boolean isValid, String errorReason) {
+        public static TokenValidationResult success() {
+            return new TokenValidationResult(true, null);
+        }
+
+        public static TokenValidationResult failure(String reason) {
+            return new TokenValidationResult(false, reason);
+        }
+    }
+
+    /**
+     * Validate token signature and expiration with detailed error information.
+     * CQ-003: Returns validation result instead of boolean for better error
+     * handling.
+     */
+    public TokenValidationResult validateTokenDetailed(String token) {
         try {
             Jwts.parser()
                     .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token);
-            return true;
+            return TokenValidationResult.success();
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return TokenValidationResult.failure("Token expired");
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            return TokenValidationResult.failure("Malformed token");
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            return TokenValidationResult.failure("Invalid signature");
         } catch (Exception e) {
-            return false;
+            return TokenValidationResult.failure("Invalid token: " + e.getMessage());
         }
+    }
+
+    /**
+     * Validate token signature and expiration (legacy method for backward
+     * compatibility).
+     * 
+     * @deprecated Use {@link #validateTokenDetailed(String)} for better error
+     *             information
+     */
+    @Deprecated
+    public boolean validateToken(String token) {
+        return validateTokenDetailed(token).isValid();
     }
 
     /**
@@ -131,10 +158,10 @@ public class JwtTokenProvider {
     }
 
     public long getAccessTokenValidityInSeconds() {
-        return accessTokenValidityInSeconds;
+        return jwtProperties.getAccessTokenValiditySeconds();
     }
 
     public long getRefreshTokenValidityInSeconds() {
-        return refreshTokenValidityInSeconds;
+        return jwtProperties.getRefreshTokenValiditySeconds();
     }
 }

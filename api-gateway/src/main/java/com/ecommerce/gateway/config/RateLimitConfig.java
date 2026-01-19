@@ -7,8 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-
 @Configuration
 public class RateLimitConfig {
 
@@ -24,15 +22,19 @@ public class RateLimitConfig {
                 return Mono.just(userId);
             }
             // Fallback to IP address for anonymous users
-            return Mono.just(
-                    Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
+            // SEC-004: Handle null remote address gracefully (e.g., from proxy)
+            return Mono.justOrEmpty(exchange.getRequest().getRemoteAddress())
+                    .map(addr -> addr.getAddress().getHostAddress())
+                    .defaultIfEmpty("unknown");
         };
     }
 
     @Bean
     public KeyResolver ipKeyResolver() {
-        return exchange -> Mono
-                .just(Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
+        // SEC-004: Handle null remote address gracefully
+        return exchange -> Mono.justOrEmpty(exchange.getRequest().getRemoteAddress())
+                .map(addr -> addr.getAddress().getHostAddress())
+                .defaultIfEmpty("unknown");
     }
 
     @Bean

@@ -17,7 +17,11 @@ class JwtTokenProviderTest {
 
     @BeforeEach
     void setUp() {
-        jwtTokenProvider = new JwtTokenProvider(secretKey, accessTokenValidity, refreshTokenValidity);
+        JwtProperties properties = new JwtProperties();
+        properties.setSecret(secretKey);
+        properties.setAccessTokenValiditySeconds(accessTokenValidity);
+        properties.setRefreshTokenValiditySeconds(refreshTokenValidity);
+        jwtTokenProvider = new JwtTokenProvider(properties);
     }
 
     @Test
@@ -29,7 +33,8 @@ class JwtTokenProviderTest {
         String token = jwtTokenProvider.generateAccessToken(userId, username, roles);
 
         assertThat(token).isNotNull();
-        assertThat(jwtTokenProvider.validateToken(token)).isTrue();
+        var result = jwtTokenProvider.validateTokenDetailed(token);
+        assertThat(result.isValid()).isTrue();
         assertThat(jwtTokenProvider.getUserIdFromToken(token)).isEqualTo(userId);
         assertThat(jwtTokenProvider.getUsernameFromToken(token)).isEqualTo(username);
         assertThat(jwtTokenProvider.getRolesFromToken(token)).containsExactly(Role.CUSTOMER);
@@ -42,13 +47,14 @@ class JwtTokenProviderTest {
         String token = jwtTokenProvider.generateRefreshToken(userId);
 
         assertThat(token).isNotNull();
-        assertThat(jwtTokenProvider.validateToken(token)).isTrue();
+        var result = jwtTokenProvider.validateTokenDetailed(token);
+        assertThat(result.isValid()).isTrue();
         assertThat(jwtTokenProvider.getUserIdFromToken(token)).isEqualTo(userId);
     }
 
     @Test
     void validateToken_ShouldReturnFalse_WhenTokenIsInvalid() {
         String invalidToken = "invalid.token.structure";
-        assertThat(jwtTokenProvider.validateToken(invalidToken)).isFalse();
+        assertThat(jwtTokenProvider.validateTokenDetailed(invalidToken).isValid()).isFalse();
     }
 }

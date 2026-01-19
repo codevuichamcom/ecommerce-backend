@@ -43,7 +43,29 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/actuator/prometheus");
 
     public JwtAuthenticationFilter(@Value("${jwt.secret}") String secret) {
+        // SEC-001: Validate JWT secret key length (HS256 requires at least 256 bits =
+        // 32 bytes)
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "JWT secret must be at least 32 bytes for HS256. Current length: " +
+                            (secret != null ? secret.getBytes(StandardCharsets.UTF_8).length : 0));
+        }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Sanitize header value to prevent HTTP header injection attacks.
+     * Removes carriage return and newline characters.
+     * 
+     * @param value the header value to sanitize
+     * @return sanitized header value
+     */
+    private String sanitizeHeaderValue(String value) {
+        if (value == null) {
+            return "";
+        }
+        // SEC-002: Remove \r and \n to prevent header injection
+        return value.replaceAll("[\\r\\n]", "");
     }
 
     @Override
@@ -77,10 +99,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             List<?> roles = claims.get("roles", List.class);
 
             // Forward info to downstream services via headers
+            // SEC-002: Sanitize all header values to prevent injection attacks
             ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("X-User-Id", userId)
-                    .header("X-User-Name", username)
-                    .header("X-User-Roles", String.join(",", roles.stream().map(Object::toString).toList()))
+                    .header("X-User-Id", sanitizeHeaderValue(userId))
+                    .header("X-User-Name", sanitizeHeaderValue(username))
+                    .header("X-User-Roles",
+                            sanitizeHeaderValue(String.join(",", roles.stream().map(Object::toString).toList())))
                     .build();
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
