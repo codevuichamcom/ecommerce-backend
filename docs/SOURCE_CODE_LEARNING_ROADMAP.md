@@ -86,12 +86,14 @@ ecommerce-backend/
 
 ```
 common-lib/src/main/java/com/ecommerce/common/
-├── domain/          ← Base classes (AggregateRoot, DomainEvent)
+├── domain/          ← Base classes (AggregateRoot, DomainEvent, ValueObject)
 ├── outbox/          ← Transactional Outbox pattern implementation
 ├── security/        ← JWT validation, Security config
 ├── exception/       ← Global exception handling
-├── config/          ← Shared configurations
-└── event/           ← Domain event interfaces
+├── kafka/           ← Kafka configuration and utilities
+├── events/          ← Domain event definitions (OrderEvents, PaymentEvents, etc.)
+├── dto/             ← Shared DTOs (PagedResponse, ErrorResponse)
+└── util/            ← Utility classes (IdGenerator)
 ```
 
 ### 2.2 Thứ Tự Đọc Code
