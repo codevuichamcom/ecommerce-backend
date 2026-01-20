@@ -28,6 +28,7 @@ Perfect for new team members:
 
 - **[Onboarding Guide](ONBOARDING.md)** - 3-day ramp-up plan for new developers
 - **[Development Guide](DEVELOPMENT.md)** - Local environment setup and common tasks
+- **[Source Code Learning Roadmap](SOURCE_CODE_LEARNING_ROADMAP.md)** - 5-phase guide to understand the codebase
 - **[Glossary](GLOSSARY.md)** - Domain terminology dictionary
 
 ### 🏗️ Architecture
