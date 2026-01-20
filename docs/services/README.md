@@ -64,6 +64,9 @@ Each service document includes:
 - Product Service: http://localhost:8081/swagger-ui.html
 - Inventory Service: http://localhost:8082/swagger-ui.html
 - Order Service: http://localhost:8083/swagger-ui.html
+- Payment Service: http://localhost:8084/swagger-ui.html
+- Notification Service: http://localhost:8085/swagger-ui.html
+- Auth Service: http://localhost:8086/swagger-ui.html
 
 ### Health Checks
 
@@ -77,5 +80,5 @@ done
 
 ---
 
-**Last Updated**: 2026-01-19  
+**Last Updated**: 2026-01-20  
 **Maintained By**: Backend Team

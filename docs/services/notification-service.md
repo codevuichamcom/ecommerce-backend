@@ -113,7 +113,20 @@ CREATE TABLE notifications (
 
 ---
 
-## Running
+## Troubleshooting
+ 
+ ### Emails Not Sent
+ - **Log Check**: Look for `MailSendException`.
+ - **Config**: Verify SMTP properties in `application.yml`.
+ - **Dev Mode**: If using `MockEmailSender`, emails only appear in logs, not real inboxes.
+ 
+ ### Kafka Consumption Stopped
+ - **Check**: Is the consumer group `notification-group` active?
+ - **Check**: Are topics `order-events` and `payment-events` populated?
+ 
+ ---
+ 
+ ## Running
 
 ```bash
 # Run locally

@@ -15,11 +15,9 @@ Each service exposes interactive API documentation via Swagger UI:
 | **Product Service** | http://localhost:8081/swagger-ui.html | http://localhost:8081/api-docs | 8081 |
 | **Inventory Service** | http://localhost:8082/swagger-ui.html | http://localhost:8082/api-docs | 8082 |
 | **Order Service** | http://localhost:8083/swagger-ui.html | http://localhost:8083/api-docs | 8083 |
-| **Payment Service** | http://localhost:8084/swagger-ui.html ⚠️ | http://localhost:8084/api-docs ⚠️ | 8084 |
-| **Notification Service** | http://localhost:8085/swagger-ui.html ⚠️ | http://localhost:8085/api-docs ⚠️ | 8085 |
-| **Auth Service** | http://localhost:8086/swagger-ui.html ⚠️ | http://localhost:8086/api-docs ⚠️ | 8086 |
-
-⚠️ = SpringDoc OpenAPI not yet configured (coming soon)
+| **Payment Service** | http://localhost:8084/swagger-ui.html | http://localhost:8084/api-docs | 8084 |
+| **Notification Service** | http://localhost:8085/swagger-ui.html | http://localhost:8085/api-docs | 8085 |
+| **Auth Service** | http://localhost:8086/swagger-ui.html | http://localhost:8086/api-docs | 8086 |
 
 ---
 
@@ -377,7 +375,7 @@ Content-Type: application/json
 
 **Base URL**: `http://localhost:8084/api/v1`
 
-⚠️ **Note**: Swagger UI not yet configured. Coming soon.
+**Swagger UI**: http://localhost:8084/swagger-ui.html
 
 #### Endpoints
 
@@ -390,8 +388,8 @@ Content-Type: application/json
 ### Notification Service (Port 8085)
 
 **Base URL**: `http://localhost:8085/api/v1`
-
-⚠️ **Note**: Swagger UI not yet configured. Coming soon.
+ 
+ **Swagger UI**: http://localhost:8085/swagger-ui.html
 
 **Event-driven service** - No public REST API. Consumes Kafka events.
 
@@ -400,8 +398,8 @@ Content-Type: application/json
 ### Auth Service (Port 8086)
 
 **Base URL**: `http://localhost:8086/api/v1`
-
-⚠️ **Note**: Swagger UI not yet configured. Coming soon.
+ 
+ **Swagger UI**: http://localhost:8086/swagger-ui.html
 
 #### Endpoints
 
@@ -588,6 +586,9 @@ Cache-Control: max-age=600
 | Product | http://localhost:8081/api-docs |
 | Inventory | http://localhost:8082/api-docs |
 | Order | http://localhost:8083/api-docs |
+| Payment | http://localhost:8084/api-docs |
+| Notification | http://localhost:8085/api-docs |
+| Auth | http://localhost:8086/api-docs |
 
 ### Generate Client SDKs
 
@@ -643,7 +644,7 @@ GET /actuator/prometheus
 - [Development Guide](../DEVELOPMENT.md) - Local API testing
 - [Authentication Guide](../SECURITY.md) - JWT authentication
 - [Data Model](../architecture/data-model.md) - Database schemas
-- [Troubleshooting](../TROUBLESHOOTING.md) *(Coming Soon)* - Common API errors
+- [Troubleshooting](../TROUBLESHOOTING.md) - Common API errors
 
 ---
 
@@ -656,5 +657,5 @@ GET /actuator/prometheus
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: 2026-01-19  
+**Last Updated**: 2026-01-20  
 **Maintained By**: Backend Team

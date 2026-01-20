@@ -139,7 +139,19 @@ spring:
 
 ---
 
-## Running
+## Troubleshooting
+ 
+ ### Database Connection Refused
+ - **Cause**: PostgreSQL container is not running or credentials are wrong.
+ - **Fix**: Check `docker ps` and `application.yml` datasource settings.
+ 
+ ### 404 Product Not Found
+ - **Check**: Are you using the correct ULID/UUID?
+ - **Check**: Is the product status `ACTIVE`? (Some endpoints filter by status).
+ 
+ ---
+ 
+ ## Running
 
 ```bash
 # Run locally

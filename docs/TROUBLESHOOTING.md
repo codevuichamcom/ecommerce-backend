@@ -156,7 +156,7 @@ SHOW max_connections;
 ./gradlew :product-service:bootRun
 ```
 
-**Related Runbook**: [Database Connection Pool](runbooks/database-connection-pool.md) *(Coming Soon)*
+**Related Runbook**: [Database Connection Pool](runbooks/database-connection-pool.md)
 
 ---
 
@@ -210,7 +210,7 @@ spring:
 ./gradlew :order-service:bootRun &
 ```
 
-**Related Runbook**: [Kafka Consumer Lag](runbooks/kafka-consumer-lag.md) *(Coming Soon)*
+**Related Runbook**: [Kafka Consumer Lag](runbooks/kafka-consumer-lag.md)
 
 ---
 
@@ -275,7 +275,7 @@ curl -X POST http://localhost:8083/api/v1/orders/01HQZX3Y4Z5A6B7C8D9E0F1G2H/canc
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-**Related Runbook**: [Order Stuck Pending](runbooks/order-stuck-pending.md) *(Coming Soon)*
+**Related Runbook**: [Order Stuck Pending](runbooks/order-stuck-pending.md)
 
 ---
 
@@ -341,7 +341,7 @@ Optional<Order> findByIdWithItems(@Param("id") String id);
 docker exec -it redis redis-cli FLUSHDB
 ```
 
-**Related Runbook**: [High Memory Usage](runbooks/high-memory-usage.md) *(Coming Soon)*
+**Related Runbook**: [High Memory Usage](runbooks/high-memory-usage.md)
 
 ---
 
@@ -726,7 +726,7 @@ jcmd <PID> GC.heap_info
 
 ## Next Steps
 
-- [Runbooks](runbooks/) *(Coming Soon)* - Detailed incident response procedures
+- [Runbooks](runbooks/) - Detailed incident response procedures
 - [Observability Guide](OBSERVABILITY.md) - Monitoring and tracing
 - [Development Guide](DEVELOPMENT.md) - Local debugging
 - [Configuration Reference](CONFIGURATION.md) - Environment variables
@@ -734,5 +734,5 @@ jcmd <PID> GC.heap_info
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: 2026-01-19  
+**Last Updated**: 2026-01-20  
 **Maintained By**: SRE Team

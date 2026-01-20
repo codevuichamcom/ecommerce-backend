@@ -111,7 +111,20 @@ CREATE TABLE inventory (
 
 ---
 
-## Running
+## Troubleshooting
+ 
+ ### Optimistic Locking Failures
+ - **Symptom**: `ObjectOptimisticLockingFailureException` in logs.
+ - **Cause**: High concurrency on the same product.
+ - **Fix**: The service should automatically retry. If persistent, check for hot-spot products or increase retry backoff.
+ 
+ ### Stock Mismatch
+ - **Symptom**: Order fails but stock is reserved.
+ - **Fix**: Check `OrderCancelled` event consumption. Manual release endpoint can be used for deep debugging.
+ 
+ ---
+ 
+ ## Running
 
 ```bash
 # Run locally

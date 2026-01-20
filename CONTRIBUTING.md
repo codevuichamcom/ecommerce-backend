@@ -1,43 +1,74 @@
 # Contributing to E-commerce Backend
 
-Thank you for your interest in contributing to our project! 
+Thank you for your interest in contributing to our project! We welcome contributions from everyone.
 
-## Getting Started
+## 🚀 Getting Started
 
-1.  **Fork the repository** and create your branch from `develop`.
-2.  **Set up your environment**: Follow the [Development Setup Guide](DEVELOPMENT.md).
-3.  **Ensure all tests pass**: Run `./gradlew test integrationTest`.
+1.  **Fork the repository** on GitHub.
+2.  **Clone your fork** locally:
+    ```bash
+    git clone https://github.com/YOUR-USERNAME/ecommerce-backend.git
+    cd ecommerce-backend
+    ```
+3.  **Set up your environment**: Follow the detailed [Development Setup Guide](docs/DEVELOPMENT.md).
+4.  **Create a branch** for your changes:
+    ```bash
+    git checkout -b feature/amazing-feature
+    # or
+    git checkout -b bugfix/critical-fix
+    ```
 
-## Coding Standards
+## 🛠️ Development Workflow
 
-- **Language**: Java 21+ with Spring Boot 3.3+.
-- **Style**: We follow the **Google Java Style Guide**. 
-  - Run `./gradlew checkstyleMain` to verify.
-- **Microservices**: Each service should maintain its own domain models and persistence.
-- **Events**: Use the [Event Catalog](docs/architecture/event-catalog.md) to define new events.
+1.  **Code**: Write clean, maintainable code following our standards.
+2.  **Test**: Add unit tests for logic and integration tests for APIs.
+    - Run all tests: `./gradlew test integrationTest`
+3.  **Document**: Update `README.md` and `docs/` if you change behavior.
+4.  **Verify**: Ensure the build passes locally: `./gradlew build`
 
-## Branching Strategy
+## 📝 Coding Standards
 
-- `main`: Production-ready code (tags only).
-- `develop`: Main integration branch.
-- `feature/*`: New features.
-- `bugfix/*`: Bug fixes.
-- `release/*`: Release candidates.
+We follow strict coding guidelines to maintain quality:
 
-## Pull Request Process
+-   **Language**: Java 21+ with Spring Boot 3.3+.
+-   **Style**: Google Java Style Guide.
+    -   Auto-format: `./gradlew goJF` (if configured) or use IDE formatter.
+    -   Verify: `./gradlew checkstyleMain`.
+-   **Architecture**: Domain-Driven Design (DDD).
+    -   Keep core logic in `domain` package.
+    -   Keep external concerns (DB, Web) in `infrastructure`.
+-   **Commits**: Use Conventional Commits.
+    -   `feat: add new payment gateway`
+    -   `fix: resolve null pointer in user service`
+    -   `docs: update api reference`
 
-1.  **Draft PR**: Open a draft PR as soon as you start work to notify the team.
-2.  **Description**: Include a clear description of changes, issue link, and testing evidence.
-3.  **Review**: At least two approvals are required.
-4.  **CI**: All GitHub Actions must pass.
+## 📋 Pull Request Process
 
-## Documentation Requirements
+1.  **Draft PR**: Open a draft PR early for feedback.
+2.  **Description**:
+    -   What does this change do?
+    -   Why is it needed?
+    -   Screenshots (if UI/API output changed).
+3.  **Checklist**:
+    -   [ ] Tests added/passed?
+    -   [ ] Documentation updated?
+    -   [ ] Linter/Checkstyle passed?
+4.  **Review**: Wait for at least 2 approvals from maintainers.
+5.  **Merge**: Squash and merge.
 
-If you add a new feature:
-- Update the relevant [Service Documentation](docs/services/).
-- Update the [Event Catalog](docs/architecture/event-catalog.md) if new events are added.
-- Add unit and integration tests.
+## 🔍 Code Review Checklist
 
-## Security
+Reviewers will check for:
 
-Please report security vulnerabilities directly to `security@ecommerce.com` instead of opening a public issue.
+-   **Correctness**: Does it fix the issue? Are edge cases handled?
+-   **Security**: No hardcoded secrets? Input validation present?
+-   **Performance**: N+1 queries? Heavy computations on main thread?
+-   **Readability**: clear variable names, helpful comments?
+-   **Testing**: Do tests cover the changes?
+
+## 🤝 Community
+
+-   **Questions?** Join our Slack channel or open a [Discussion](https://github.com/ecommerce/discussions).
+-   **Bugs?** Open an [Issue](https://github.com/ecommerce/issues) with reproduction steps.
+
+Thank you for contributing!

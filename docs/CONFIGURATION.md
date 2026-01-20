@@ -665,12 +665,12 @@ env | grep REDIS
 ## Next Steps
 
 - [Development Guide](DEVELOPMENT.md) - Local environment setup
-- [Deployment Guide](DEPLOYMENT.md) *(Coming Soon)* - Production deployment
+- [Deployment Guide](DEPLOYMENT.md) - Production deployment
 - [Security Guide](SECURITY.md) - Security best practices
-- [Troubleshooting](TROUBLESHOOTING.md) *(Coming Soon)* - Common issues
+- [Troubleshooting](TROUBLESHOOTING.md) - Common issues
 
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: 2026-01-19  
+**Last Updated**: 2026-01-20  
 **Maintained By**: DevOps Team

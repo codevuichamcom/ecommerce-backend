@@ -132,7 +132,23 @@ See [Outbox Pattern](../architecture/outbox-pattern.md).
 
 ---
 
-## Running
+## Troubleshooting
+ 
+ ### Transactions Delayed
+ - **Cause**: Latency simulation might be enabled. Check `payment.processing.delay-ms`.
+ - **Cause**: Kafka consumer lag in `order-events` topic.
+ 
+ ### High Failure Rate
+ - **Cause**: Failure simulation active? Check `payment.processing.simulated-failure-rate`.
+ - **Check**: External gateway connectivity (mock or real).
+ 
+ ### Duplicate Payments
+ - **Check**: Idempotency key logic in `PaymentService`.
+ - **Check**: Kafka retries sending duplicate messages without deduplication.
+ 
+ ---
+ 
+ ## Running
 
 ```bash
 # Run locally

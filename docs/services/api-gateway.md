@@ -120,7 +120,23 @@ jwt:
   secret: ${JWT_SECRET} # Must be >= 32 bytes
 ```
 
-## Running
+## Troubleshooting
+ 
+ ### 503 Service Unavailable
+ - **Cause**: Downstream service (Product, Order, etc.) is not running.
+ - **Fix**: Use `docker ps` to check service status.
+ 
+ ### 401 Unauthorized
+ - **Cause**: JWT token missing or invalid.
+ - **Fix**: Retrieve a new token via `/auth/login`.
+ 
+ ### 429 Too Many Requests
+ - **Cause**: Rate limit exceeded for your IP or User ID.
+ - **Fix**: Redis might be down (failing open or closed). Check Redis connection.
+ 
+ ---
+ 
+ ## Running
 
 ```bash
 # Run locally

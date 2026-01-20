@@ -743,11 +743,12 @@ kubectl get events --sort-by='.lastTimestamp'
 
 - [Troubleshooting Guide](TROUBLESHOOTING.md) - Common deployment issues
 - [Observability Guide](OBSERVABILITY.md) - Monitoring and alerting
-- [Runbooks](runbooks/) *(Coming Soon)* - Incident response procedures
+- [Runbooks](runbooks/) - Incident response procedures
 - [Configuration Reference](CONFIGURATION.md) - Environment variables
 
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: 2026-01-19  
+**Last Updated**: 2026-01-20  
 **Maintained By**: DevOps Team
+```

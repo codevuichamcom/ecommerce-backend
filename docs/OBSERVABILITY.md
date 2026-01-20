@@ -637,11 +637,11 @@ Example: (1 - 0.999) × 10M = 10,000 failed requests allowed per month
 
 - [Troubleshooting Guide](TROUBLESHOOTING.md) - Use metrics to debug issues
 - [Deployment Guide](DEPLOYMENT.md) - Monitor deployments
-- [Runbooks](runbooks/) *(Coming Soon)* - Alert response procedures
+- [Runbooks](runbooks/) - Alert response procedures
 - [Security Guide](SECURITY.md) - Security monitoring
 
 ---
 
 **Document Version**: 2.0  
-**Last Updated**: 2026-01-19  
+**Last Updated**: 2026-01-20  
 **Maintained By**: SRE Team

@@ -177,7 +177,20 @@ jwt:
   refresh-token-validity-seconds: 2592000 # 30 days
 ```
 
-## Running
+## Troubleshooting
+ 
+ ### Login Fails (401 Unauthorized)
+ - **Check**: Are credentials correct?
+ - **Check**: Is the user account `enabled` in database?
+ - **Check**: Has the password hashing algorithm changed?
+ 
+ ### Token Issues
+ - **Invalid Signature**: Ensure `jwt.secret` matches between Auth Service and Gateway.
+ - **Expired**: Check server time synchronization.
+ 
+ ---
+ 
+ ## Running
 
 ```bash
 # Run locally
