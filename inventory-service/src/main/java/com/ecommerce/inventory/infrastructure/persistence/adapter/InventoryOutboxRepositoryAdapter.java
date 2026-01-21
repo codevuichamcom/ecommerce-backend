@@ -2,16 +2,16 @@ package com.ecommerce.inventory.infrastructure.persistence.adapter;
 
 import com.ecommerce.common.outbox.OutboxMessage;
 import com.ecommerce.common.outbox.OutboxRepository;
-import com.ecommerce.inventory.domain.repository.InventoryOutboxRepository;
+import com.ecommerce.inventory.infrastructure.persistence.repository.InventoryOutboxJpaRepository;
 import com.ecommerce.inventory.infrastructure.persistence.entity.OutboxEventEntity;
 import org.springframework.stereotype.Component;
 
 @Component
 public class InventoryOutboxRepositoryAdapter implements OutboxRepository {
 
-    private final InventoryOutboxRepository repository;
+    private final InventoryOutboxJpaRepository repository;
 
-    public InventoryOutboxRepositoryAdapter(InventoryOutboxRepository repository) {
+    public InventoryOutboxRepositoryAdapter(InventoryOutboxJpaRepository repository) {
         this.repository = repository;
     }
 
