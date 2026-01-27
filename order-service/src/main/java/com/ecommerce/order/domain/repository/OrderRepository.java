@@ -13,6 +13,8 @@ public interface OrderRepository {
 
     Order save(Order order);
 
+    Order saveAndFlush(Order order);
+
     Optional<Order> findById(OrderId id);
 
     Optional<Order> findByIdempotencyKey(String idempotencyKey);

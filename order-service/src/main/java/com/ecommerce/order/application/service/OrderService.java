@@ -89,7 +89,9 @@ public class OrderService {
 
         // CONC-001: Handle race condition with database unique constraint
         try {
-            var savedOrder = orderRepository.save(order);
+            // Use save and flush to ensure unique constraint is checked within this
+            // try-catch
+            var savedOrder = orderRepository.saveAndFlush(order);
             OrderId orderId = savedOrder.getId();
 
             // 4. Start Order Saga
@@ -112,8 +114,10 @@ public class OrderService {
                     idempotencyKey);
             return orderRepository.findByIdempotencyKey(idempotencyKey)
                     .map(OrderResponse::from)
-                    .orElseThrow(() -> new RuntimeException(
-                            "Order creation failed and existing order not found for key: " + idempotencyKey));
+                    .orElseThrow(() -> new com.ecommerce.common.exception.ConflictException(
+                            "IDEMPOTENCY_CONFLICT",
+                            "Order creation failed due to conflict, and existing order not found for key: "
+                                    + idempotencyKey));
         }
     }
 
@@ -179,9 +183,19 @@ public class OrderService {
         // made)
         boolean requiresRefund = order.getStatus() instanceof OrderStatus.Confirmed;
 
+        List<OrderEvents.OrderItemData> itemData = order.getItems().stream()
+                .map(item -> new OrderEvents.OrderItemData(
+                        item.productId(),
+                        item.productName(),
+                        item.quantity(),
+                        item.unitPrice().amount(),
+                        item.unitPrice().currency()))
+                .toList();
+
         OrderEvents.OrderCancelled event = OrderEvents.OrderCancelled.create(
                 order.getId().value(),
                 order.getCustomerId().value(),
+                itemData,
                 reason,
                 requiresRefund);
 

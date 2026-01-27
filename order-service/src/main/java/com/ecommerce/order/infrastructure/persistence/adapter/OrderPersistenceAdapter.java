@@ -32,6 +32,14 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     @Override
+    @SuppressWarnings("null")
+    public Order saveAndFlush(Order order) {
+        var entity = toJpaEntity(order);
+        var saved = jpaRepository.saveAndFlush(entity);
+        return toDomainEntity(saved);
+    }
+
+    @Override
     public Optional<Order> findById(OrderId id) {
         return jpaRepository.findByIdWithItems(Objects.requireNonNull(id.value()))
                 .map(this::toDomainEntity);
@@ -96,7 +104,6 @@ public class OrderPersistenceAdapter implements OrderRepository {
                         new Money(itemEntity.getUnitPrice(), itemEntity.getCurrency()),
                         new Money(itemEntity.getSubtotal(), itemEntity.getCurrency())))
                 .toList();
-
 
         var status = OrderStatus.fromDbValue(entity.getStatus(), entity.getCancelReason());
 
