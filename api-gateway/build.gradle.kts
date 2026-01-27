@@ -20,6 +20,8 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
     
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    
     // Redis for rate limiting
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
     

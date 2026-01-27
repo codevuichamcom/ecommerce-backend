@@ -4,8 +4,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     java
     jacoco
-    id("org.springframework.boot") version "3.5.9" apply false
-    id("io.spring.dependency-management") version "1.1.4" apply false
+    id("org.springframework.boot") version "3.5.10" apply false
+    id("io.spring.dependency-management") version "1.1.7" apply false
 }
 
 
@@ -33,7 +33,7 @@ subprojects {
     // Dependency management - Spring Boot BOM
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.9")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.10")
         }
     }
     
@@ -42,6 +42,7 @@ subprojects {
         // Lombok
         "compileOnly"("org.projectlombok:lombok")
         "annotationProcessor"("org.projectlombok:lombok")
+        "annotationProcessor"("org.springframework.boot:spring-boot-configuration-processor")
         "testCompileOnly"("org.projectlombok:lombok")
         "testAnnotationProcessor"("org.projectlombok:lombok")
         
