@@ -9,7 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class OutboxConfig {
 
     @Bean
-    public OutboxEventPublisher outboxEventPublisher(OutboxRepository outboxRepository) {
-        return new OutboxEventPublisher(outboxRepository);
+    public OutboxEventPublisher outboxEventPublisher(OutboxRepository outboxRepository,
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
+        return new OutboxEventPublisher(outboxRepository, objectMapper);
     }
 }

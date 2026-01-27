@@ -26,8 +26,9 @@ class OutboxEventPublisherTest {
 
     @BeforeEach
     void setUp() {
-        outboxEventPublisher = new OutboxEventPublisher(outboxRepository);
-        objectMapper = OutboxEventPublisher.getObjectMapper();
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        outboxEventPublisher = new OutboxEventPublisher(outboxRepository, objectMapper);
     }
 
     @Test

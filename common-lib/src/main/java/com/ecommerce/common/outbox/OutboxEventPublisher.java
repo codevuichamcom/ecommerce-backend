@@ -3,7 +3,6 @@ package com.ecommerce.common.outbox;
 import com.ecommerce.common.domain.DomainEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,19 +15,12 @@ import java.util.UUID;
 public class OutboxEventPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(OutboxEventPublisher.class);
-    private static final ObjectMapper objectMapper = createObjectMapper();
-
+    private final ObjectMapper objectMapper;
     private final OutboxRepository outboxRepository;
 
-    public OutboxEventPublisher(OutboxRepository outboxRepository) {
+    public OutboxEventPublisher(OutboxRepository outboxRepository, ObjectMapper objectMapper) {
         this.outboxRepository = outboxRepository;
-    }
-
-    private static ObjectMapper createObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return mapper;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -65,7 +57,7 @@ public class OutboxEventPublisher {
      * Get the ObjectMapper used for serialization.
      * Can be used by consumers to deserialize events.
      */
-    public static ObjectMapper getObjectMapper() {
+    public ObjectMapper getObjectMapper() {
         return objectMapper;
     }
 }
