@@ -62,7 +62,7 @@ public class PaymentEventConsumer {
 
         } catch (Exception e) {
             log.error("Error processing order event: {}", e.getMessage(), e);
-            // Could implement dead letter queue here
+            throw new RuntimeException("Failed to process order event", e);
         }
     }
 

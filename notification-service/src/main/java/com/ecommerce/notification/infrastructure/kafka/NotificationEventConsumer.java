@@ -60,6 +60,7 @@ public class NotificationEventConsumer {
 
         } catch (Exception e) {
             log.error("Error processing order event: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process order event", e);
         }
     }
 
@@ -83,6 +84,7 @@ public class NotificationEventConsumer {
 
         } catch (Exception e) {
             log.error("Error processing payment event: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process payment event", e);
         }
     }
 
