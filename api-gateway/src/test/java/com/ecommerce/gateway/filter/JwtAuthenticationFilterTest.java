@@ -4,7 +4,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.web.server.WebFilterChain;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -24,13 +24,13 @@ import static org.mockito.Mockito.when;
 class JwtAuthenticationFilterTest {
 
     private JwtAuthenticationFilter filter;
-    private GatewayFilterChain chain;
+    private WebFilterChain chain;
     private final String secretKey = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
 
     @BeforeEach
     void setUp() {
         filter = new JwtAuthenticationFilter(secretKey);
-        chain = mock(GatewayFilterChain.class);
+        chain = mock(WebFilterChain.class);
     }
 
     @Test
