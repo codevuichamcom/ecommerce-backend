@@ -24,6 +24,15 @@ class InventoryServiceTest {
     @Mock
     private InventoryRepository inventoryRepository;
 
+    @Mock
+    private com.ecommerce.inventory.infrastructure.kafka.InventoryEventProducer eventProducer;
+
+    @Mock
+    private io.micrometer.core.instrument.MeterRegistry meterRegistry;
+
+    @Mock
+    private io.micrometer.core.instrument.Counter counter;
+
     @InjectMocks
     private InventoryService inventoryService;
 
@@ -32,6 +41,7 @@ class InventoryServiceTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(meterRegistry.counter(anyString(), any(String[].class))).thenReturn(counter);
         inventory = Inventory.create(productId, 100);
     }
 

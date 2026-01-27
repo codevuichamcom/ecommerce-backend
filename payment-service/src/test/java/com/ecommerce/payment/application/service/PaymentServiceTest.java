@@ -13,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -34,7 +33,13 @@ class PaymentServiceTest {
     private OutboxEventPublisher outboxEventPublisher;
 
     @Mock
-    private io.micrometer.core.instrument.MeterRegistry meterRegistry;
+    private com.ecommerce.payment.infrastructure.config.PaymentProperties paymentProperties;
+
+    @Mock
+    private com.ecommerce.payment.infrastructure.config.PaymentProperties.Processing processingProperties;
+
+    @Mock
+    private com.ecommerce.payment.application.service.InternalPaymentService internalPaymentService;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -46,31 +51,28 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(paymentService, "processingDelayMs", 0L);
-        ReflectionTestUtils.setField(paymentService, "simulatedFailureRate", 0.0);
+        lenient().when(paymentProperties.getProcessing()).thenReturn(processingProperties);
+        lenient().when(processingProperties.getDelayMs()).thenReturn(0L);
+        lenient().when(processingProperties.getSimulatedFailureRate()).thenReturn(0.0);
     }
 
     @Test
     void processPayment_ShouldCompletePayment_WhenSuccessful() {
         // Given
         ProcessPaymentCommand command = new ProcessPaymentCommand(orderId, customerId, amount, currency);
+        Payment payment = Payment.create(orderId, customerId, amount, currency);
+        payment.startProcessing();
 
-        when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
-        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(paymentRepository.findById(any(PaymentId.class))).thenAnswer(inv -> {
-            Payment p = Payment.create(orderId, customerId, amount, currency);
-            p.startProcessing();
-            return Optional.of(p);
-        });
+        when(internalPaymentService.initializePayment(any(ProcessPaymentCommand.class))).thenReturn(payment);
+        when(internalPaymentService.completePayment(any(PaymentId.class))).thenReturn(payment);
 
         // When
         PaymentResponse response = paymentService.processPayment(command);
 
         // Then
         assertThat(response).isNotNull();
-        assertThat(response.status()).isEqualTo("COMPLETED");
-        verify(paymentRepository, atLeastOnce()).save(any(Payment.class));
-        verify(outboxEventPublisher, atLeastOnce()).publish(eq("Payment"), anyString(), any());
+        verify(internalPaymentService).initializePayment(any(ProcessPaymentCommand.class));
+        verify(internalPaymentService).completePayment(any(PaymentId.class));
     }
 
     @Test
@@ -81,37 +83,32 @@ class PaymentServiceTest {
         existingPayment.startProcessing();
         existingPayment.complete("TXN-123");
 
-        when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(existingPayment));
+        when(internalPaymentService.initializePayment(any(ProcessPaymentCommand.class))).thenReturn(existingPayment);
 
         // When
         PaymentResponse response = paymentService.processPayment(command);
 
         // Then
         assertThat(response.status()).isEqualTo("COMPLETED");
-        verify(paymentRepository, never()).save(any());
-        verify(outboxEventPublisher, never()).publish(any(), any(), any());
+        verify(internalPaymentService, never()).completePayment(any());
     }
 
     @Test
     void processPayment_ShouldFail_WhenSimulationFails() {
         // Given
-        ReflectionTestUtils.setField(paymentService, "simulatedFailureRate", 1.0);
+        when(processingProperties.getSimulatedFailureRate()).thenReturn(1.0);
         ProcessPaymentCommand command = new ProcessPaymentCommand(orderId, customerId, amount, currency);
+        Payment payment = Payment.create(orderId, customerId, amount, currency);
+        payment.startProcessing();
 
-        when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
-        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(paymentRepository.findById(any(PaymentId.class))).thenAnswer(inv -> {
-            Payment p = Payment.create(orderId, customerId, amount, currency);
-            p.startProcessing();
-            return Optional.of(p);
-        });
+        when(internalPaymentService.initializePayment(any(ProcessPaymentCommand.class))).thenReturn(payment);
+        when(internalPaymentService.failPayment(any(), anyString(), anyString())).thenReturn(payment);
 
         // When
-        PaymentResponse response = paymentService.processPayment(command);
+        paymentService.processPayment(command);
 
         // Then
-        assertThat(response.status()).isEqualTo("FAILED");
-        verify(outboxEventPublisher, atLeastOnce()).publish(eq("Payment"), anyString(), any());
+        verify(internalPaymentService).failPayment(any(), anyString(), eq("PAYMENT_FAILED"));
     }
 
     @Test

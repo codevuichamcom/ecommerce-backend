@@ -87,7 +87,7 @@ class OrderServiceTest {
                 // Given
                 when(orderRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
                 when(productService.getProduct(productId)).thenReturn(productDetails);
-                when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+                when(orderRepository.saveAndFlush(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
                 when(sagaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
                 when(meterRegistry.counter(anyString(), any(String[].class)))
                                 .thenReturn(mock(io.micrometer.core.instrument.Counter.class));
@@ -97,12 +97,32 @@ class OrderServiceTest {
 
                 // Then
                 assertThat(response).isNotNull();
-                // Note: In the new implementation, status remains PENDING until saga processes
-                // it
                 assertThat(response.status()).isEqualTo("PENDING");
-                verify(orderRepository).save(any(Order.class));
+                verify(orderRepository).saveAndFlush(any(Order.class));
                 verify(sagaRepository).save(any());
                 verify(outboxEventPublisher).publish(anyString(), anyString(), any());
+        }
+
+        @Test
+        void createOrder_ShouldHandleRaceCondition_WhenDataIntegrityViolationOccurs() {
+                // Given
+                Order existingOrder = createTestOrder();
+                when(orderRepository.findByIdempotencyKey(idempotencyKey))
+                                .thenReturn(Optional.empty()) // First check: not found
+                                .thenReturn(Optional.of(existingOrder)); // After exception: found
+
+                when(productService.getProduct(productId)).thenReturn(productDetails);
+                when(orderRepository.saveAndFlush(any(Order.class)))
+                                .thenThrow(new org.springframework.dao.DataIntegrityViolationException("Duplicate"));
+
+                // When
+                OrderResponse response = orderService.createOrder(createCommand, idempotencyKey);
+
+                // Then
+                assertThat(response).isNotNull();
+                assertThat(response.id()).isEqualTo(existingOrder.getId().value());
+                verify(orderRepository).saveAndFlush(any(Order.class));
+                verify(orderRepository, times(2)).findByIdempotencyKey(idempotencyKey);
         }
 
         // Removed createOrder_ShouldRollbackAndThrow_WhenInsufficientStock as it is now
