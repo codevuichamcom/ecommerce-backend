@@ -68,6 +68,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         return value.replaceAll("[\\r\\n]", "");
     }
 
+    private static final java.util.Map<String, List<String>> ROLE_PROTECTED_ENDPOINTS = java.util.Map.of(
+            "/api/orders", List.of("CUSTOMER", "ADMIN"),
+            "/api/payments", List.of("SERVICE", "ADMIN"),
+            "/api/inventory", List.of("ADMIN", "SERVICE"),
+            "/api/products", List.of("ADMIN", "SERVICE"), // Only for POST/PUT/DELETE
+            "/actuator", List.of("ADMIN") // Secure actuator
+    );
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -75,7 +83,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
         // Check if endpoint is public
         if (isPublicEndpoint(path)) {
-            return chain.filter(exchange);
+            // Special case: GET /api/products is public, but others need ADMIN/SERVICE
+            if (path.startsWith("/api/products") && !request.getMethod().name().equals("GET")) {
+                // fall through to token validation
+            } else {
+                return chain.filter(exchange);
+            }
         }
 
         // Check Authorization header
@@ -98,6 +111,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             String username = claims.get("username", String.class);
             List<?> roles = claims.get("roles", List.class);
 
+            // Role-based Authorization check
+            if (!isAuthorized(path, request.getMethod().name(), roles)) {
+                logger.warn("User {} unauthorized for {} {}", username, request.getMethod(), path);
+                return onError(exchange, "Insufficient permissions", HttpStatus.FORBIDDEN);
+            }
+
             // Forward info to downstream services via headers
             // SEC-002: Sanitize all header values to prevent injection attacks
             ServerHttpRequest mutatedRequest = request.mutate()
@@ -113,6 +132,30 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             logger.error("JWT validation failed: {}", e.getMessage());
             return onError(exchange, "Invalid token", HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    private boolean isAuthorized(String path, String method, List<?> userRoles) {
+        if (userRoles == null)
+            return false;
+
+        List<String> userRolesStr = userRoles.stream().map(Object::toString).toList();
+
+        // Find matching protection rule
+        for (java.util.Map.Entry<String, List<String>> entry : ROLE_PROTECTED_ENDPOINTS.entrySet()) {
+            if (path.startsWith(entry.getKey())) {
+                // For Products, only POST/PUT/DELETE are protected
+                if (entry.getKey().equals("/api/products") && method.equals("GET")) {
+                    return true;
+                }
+
+                // Check if user has at least one of the required roles
+                return entry.getValue().stream().anyMatch(userRolesStr::contains);
+            }
+        }
+
+        // Default: If not specifically protected but requires token, allow any valid
+        // token
+        return true;
     }
 
     private boolean isPublicEndpoint(String path) {
