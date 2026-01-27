@@ -3,6 +3,7 @@ package com.ecommerce.gateway.integration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -11,6 +12,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * Integration tests for Auth flow and Gateway Authorization.
  * Note: These tests focus on the Gateway logic. Sub-services are not started.
  */
+@ActiveProfiles("test")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class AuthFlowIntegrationTest {
 
@@ -22,7 +24,7 @@ class AuthFlowIntegrationTest {
         webTestClient.get()
                 .uri("/api/products")
                 .exchange()
-                .expectStatus().isOk(); // It might be 404 or 503 if downstream is down, but filter should pass it
+                .expectStatus().is5xxServerError(); // Proves filter passed it (fails downstream)
     }
 
     @Test
