@@ -1,14 +1,16 @@
 package com.ecommerce.common.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.time.Instant;
 
 /**
  * Marker interface for Domain Events.
  * All domain events should implement this interface.
  * 
- * Uses Java 21 pattern: Events are typically implemented as records.
+ * Uses Jackson polymorphic type info for robust event detection.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "eventType", visible = true)
 public interface DomainEvent {
 
     /**

@@ -72,7 +72,7 @@ public class OrderSaga extends AggregateRoot<OrderId> {
 
     public void startCompensating() {
         if (state != SagaState.PAYMENT_FAILED && state != SagaState.INVENTORY_FAILED) {
-            // We might also allow compensating from other states if needed
+            throw new IllegalStateException("Cannot start compensating from state: " + state);
         }
         this.state = SagaState.COMPENSATING;
         this.updatedAt = Instant.now();
