@@ -16,37 +16,41 @@ import java.util.Optional;
 public class NotificationPersistenceAdapter implements NotificationRepository {
 
     private final NotificationJpaRepository jpaRepository;
+    private final com.ecommerce.notification.infrastructure.persistence.mapper.NotificationMapper notificationMapper;
 
-    public NotificationPersistenceAdapter(NotificationJpaRepository jpaRepository) {
+    public NotificationPersistenceAdapter(
+            NotificationJpaRepository jpaRepository,
+            com.ecommerce.notification.infrastructure.persistence.mapper.NotificationMapper notificationMapper) {
         this.jpaRepository = jpaRepository;
+        this.notificationMapper = notificationMapper;
     }
 
     @Override
     @SuppressWarnings("null")
     public Notification save(Notification notification) {
-        var entity = NotificationMapper.toEntity(notification);
+        var entity = notificationMapper.toEntity(notification);
         var savedEntity = jpaRepository.save(entity);
-        return NotificationMapper.toDomain(savedEntity);
+        return notificationMapper.toDomainEntity(savedEntity);
     }
 
     @Override
     @SuppressWarnings("null")
     public Optional<Notification> findById(NotificationId id) {
         return jpaRepository.findById(id.value())
-                .map(NotificationMapper::toDomain);
+                .map(notificationMapper::toDomainEntity);
     }
 
     @Override
     public List<Notification> findByRecipientId(String recipientId) {
         return jpaRepository.findByRecipientIdOrderByCreatedAtDesc(recipientId).stream()
-                .map(NotificationMapper::toDomain)
+                .map(notificationMapper::toDomainEntity)
                 .toList();
     }
 
     @Override
     public List<Notification> findPendingNotifications(int limit) {
         return jpaRepository.findPendingNotifications(limit).stream()
-                .map(NotificationMapper::toDomain)
+                .map(notificationMapper::toDomainEntity)
                 .toList();
     }
 }
