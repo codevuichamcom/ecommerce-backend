@@ -1,6 +1,7 @@
 package com.ecommerce.common.events;
 
 import com.ecommerce.common.domain.DomainEvent;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -10,6 +11,11 @@ import java.util.UUID;
  * Order-related domain events.
  * These events are published when order state changes occur.
  */
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = OrderEvents.OrderCreated.class, name = "OrderCreated"),
+        @JsonSubTypes.Type(value = OrderEvents.OrderConfirmed.class, name = "OrderConfirmed"),
+        @JsonSubTypes.Type(value = OrderEvents.OrderCancelled.class, name = "OrderCancelled")
+})
 public sealed interface OrderEvents extends DomainEvent {
 
     /**

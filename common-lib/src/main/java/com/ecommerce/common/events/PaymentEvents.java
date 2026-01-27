@@ -1,6 +1,7 @@
 package com.ecommerce.common.events;
 
 import com.ecommerce.common.domain.DomainEvent;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -9,6 +10,12 @@ import java.util.UUID;
  * Payment-related domain events.
  * These events are published when payment processing state changes occur.
  */
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = PaymentEvents.PaymentRequested.class, name = "PaymentRequested"),
+        @JsonSubTypes.Type(value = PaymentEvents.PaymentCompleted.class, name = "PaymentCompleted"),
+        @JsonSubTypes.Type(value = PaymentEvents.PaymentFailed.class, name = "PaymentFailed"),
+        @JsonSubTypes.Type(value = PaymentEvents.PaymentRefunded.class, name = "PaymentRefunded")
+})
 public sealed interface PaymentEvents extends DomainEvent {
 
     /**

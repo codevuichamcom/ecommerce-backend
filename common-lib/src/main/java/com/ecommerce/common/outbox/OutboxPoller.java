@@ -25,12 +25,13 @@ public class OutboxPoller {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final String topicName;
     private final int batchSize;
+    private final int daysToKeep;
 
     public OutboxPoller(
             OutboxRepository outboxRepository,
             KafkaTemplate<String, String> kafkaTemplate,
             String topicName) {
-        this(outboxRepository, kafkaTemplate, topicName, DEFAULT_BATCH_SIZE);
+        this(outboxRepository, kafkaTemplate, topicName, DEFAULT_BATCH_SIZE, 7);
     }
 
     public OutboxPoller(
@@ -38,10 +39,20 @@ public class OutboxPoller {
             KafkaTemplate<String, String> kafkaTemplate,
             String topicName,
             int batchSize) {
+        this(outboxRepository, kafkaTemplate, topicName, batchSize, 7);
+    }
+
+    public OutboxPoller(
+            OutboxRepository outboxRepository,
+            KafkaTemplate<String, String> kafkaTemplate,
+            String topicName,
+            int batchSize,
+            int daysToKeep) {
         this.outboxRepository = outboxRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.topicName = topicName;
         this.batchSize = batchSize;
+        this.daysToKeep = daysToKeep;
     }
 
     /**
@@ -94,7 +105,6 @@ public class OutboxPoller {
     @Scheduled(cron = "${outbox.cleanup.cron:0 0 3 * * *}")
     @Transactional
     public void cleanupOldMessages() {
-        int daysToKeep = 7;
         log.info("Cleaning up published outbox messages older than {} days", daysToKeep);
         outboxRepository.deletePublishedOlderThan(daysToKeep);
     }

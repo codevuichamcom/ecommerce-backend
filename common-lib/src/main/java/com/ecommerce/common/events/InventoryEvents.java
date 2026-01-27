@@ -1,6 +1,7 @@
 package com.ecommerce.common.events;
 
 import com.ecommerce.common.domain.DomainEvent;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -8,6 +9,12 @@ import java.util.UUID;
  * Inventory-related domain events.
  * These events are published when inventory state changes occur.
  */
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = InventoryEvents.StockReserved.class, name = "StockReserved"),
+        @JsonSubTypes.Type(value = InventoryEvents.StockReservationFailed.class, name = "StockReservationFailed"),
+        @JsonSubTypes.Type(value = InventoryEvents.StockReleased.class, name = "StockReleased"),
+        @JsonSubTypes.Type(value = InventoryEvents.AllItemsReserved.class, name = "AllItemsReserved")
+})
 public sealed interface InventoryEvents extends DomainEvent {
 
     /**
