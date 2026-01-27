@@ -1,14 +1,11 @@
 package com.ecommerce.product.infrastructure.persistence.adapter;
 
-import com.ecommerce.product.domain.model.Money;
 import com.ecommerce.product.domain.model.Product;
 import com.ecommerce.product.domain.model.ProductId;
 import com.ecommerce.product.domain.repository.ProductRepository;
-import com.ecommerce.product.infrastructure.persistence.entity.ProductJpaEntity;
 import com.ecommerce.product.infrastructure.persistence.repository.ProductJpaRepository;
 import org.springframework.stereotype.Component;
 
-import java.util.Currency;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,35 +18,39 @@ import java.util.Optional;
 public class ProductPersistenceAdapter implements ProductRepository {
 
     private final ProductJpaRepository jpaRepository;
+    private final com.ecommerce.product.infrastructure.persistence.mapper.ProductMapper productMapper;
 
-    public ProductPersistenceAdapter(ProductJpaRepository jpaRepository) {
+    public ProductPersistenceAdapter(
+            ProductJpaRepository jpaRepository,
+            com.ecommerce.product.infrastructure.persistence.mapper.ProductMapper productMapper) {
         this.jpaRepository = jpaRepository;
+        this.productMapper = productMapper;
     }
 
     @Override
     @SuppressWarnings("null")
     public Product save(Product product) {
-        var entity = toJpaEntity(product);
+        var entity = productMapper.toJpaEntity(product);
         var savedEntity = jpaRepository.save(entity);
-        return toDomainEntity(savedEntity);
+        return productMapper.toDomainEntity(savedEntity);
     }
 
     @Override
     public Optional<Product> findById(ProductId id) {
         return jpaRepository.findById(Objects.requireNonNull(id.value()))
-                .map(this::toDomainEntity);
+                .map(productMapper::toDomainEntity);
     }
 
     @Override
     public Optional<Product> findBySku(String sku) {
         return jpaRepository.findBySku(sku)
-                .map(this::toDomainEntity);
+                .map(productMapper::toDomainEntity);
     }
 
     @Override
     public List<Product> findAll() {
         return jpaRepository.findAll().stream()
-                .map(this::toDomainEntity)
+                .map(productMapper::toDomainEntity)
                 .toList();
     }
 
@@ -61,33 +62,5 @@ public class ProductPersistenceAdapter implements ProductRepository {
     @Override
     public void delete(ProductId id) {
         jpaRepository.deleteById(Objects.requireNonNull(id.value()));
-    }
-
-    // Mapping methods
-
-    private ProductJpaEntity toJpaEntity(Product product) {
-        var entity = new ProductJpaEntity();
-        entity.setId(product.getId().value());
-        entity.setName(product.getName());
-        entity.setDescription(product.getDescription());
-        entity.setSku(product.getSku());
-        entity.setPrice(product.getPrice().amount());
-        entity.setCurrency(product.getPrice().currency().getCurrencyCode());
-        entity.setStatus(product.getStatus());
-        entity.setCreatedAt(product.getCreatedAt());
-        entity.setUpdatedAt(product.getUpdatedAt());
-        return entity;
-    }
-
-    private Product toDomainEntity(ProductJpaEntity entity) {
-        return Product.reconstitute(
-                new ProductId(entity.getId()),
-                entity.getName(),
-                entity.getDescription(),
-                entity.getSku(),
-                new Money(entity.getPrice(), Currency.getInstance(entity.getCurrency())),
-                entity.getStatus(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt());
     }
 }
