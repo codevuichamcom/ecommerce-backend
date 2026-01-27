@@ -25,7 +25,7 @@ public class OrderEventConsumer {
     private final ProcessedEventJpaRepository processedEventRepository;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "${app.kafka.topics.inventory-events:inventory-events}", groupId = "order-service")
+    @KafkaListener(topics = "${app.kafka.topics.inventory-events:inventory-events}", groupId = com.ecommerce.common.kafka.KafkaTopics.ORDER_SERVICE_GROUP)
     @Transactional
     public void handleInventoryEvents(String message) {
         log.debug("Received inventory event: {}", message);
@@ -57,7 +57,7 @@ public class OrderEventConsumer {
         }
     }
 
-    @KafkaListener(topics = "${app.kafka.topics.payment-events:payment-events}", groupId = "order-service")
+    @KafkaListener(topics = "${app.kafka.topics.payment-events:payment-events}", groupId = com.ecommerce.common.kafka.KafkaTopics.ORDER_SERVICE_GROUP)
     @Transactional
     public void handlePaymentEvents(String message) {
         log.debug("Received payment event: {}", message);

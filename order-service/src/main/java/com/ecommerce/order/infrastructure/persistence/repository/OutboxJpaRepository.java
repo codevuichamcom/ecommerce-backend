@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface OutboxJpaRepository extends JpaRepository<OutboxEventEntity, UUID> {
 
     @org.springframework.data.jpa.repository.Query(value = """
-            SELECT * FROM outbox_events
+            SELECT * FROM outbox_messages
             WHERE published = false
             ORDER BY created_at ASC
             LIMIT :limit
