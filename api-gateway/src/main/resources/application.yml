@@ -14,7 +14,9 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: "*"
+            allowedOrigins: 
+              - "http://localhost:3000"
+              - "http://localhost:8080"
             allowedMethods:
               - GET
               - POST
@@ -27,7 +29,6 @@ spring:
               - Authorization
               - Content-Type
             maxAge: 3600
-      
       # Default filters applied to all routes
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
@@ -36,6 +37,16 @@ spring:
       discovery:
         locator:
           enabled: false
+
+# App Services Configuration
+app:
+  services:
+    product-url: ${SERVICE_PRODUCT_URL:http://localhost:8081}
+    inventory-url: ${SERVICE_INVENTORY_URL:http://localhost:8082}
+    order-url: ${SERVICE_ORDER_URL:http://localhost:8083}
+    payment-url: ${SERVICE_PAYMENT_URL:http://localhost:8084}
+    notification-url: ${SERVICE_NOTIFICATION_URL:http://localhost:8085}
+    auth-url: ${SERVICE_AUTH_URL:http://localhost:8086}
 
   # Redis
   data:

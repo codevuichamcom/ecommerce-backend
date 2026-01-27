@@ -18,7 +18,7 @@ class ApiGatewayApplicationTest {
     @Test
     void shouldInstantiateRouteConfig() {
         // Given & When
-        RouteConfig routeConfig = new RouteConfig(null, null, null);
+        RouteConfig routeConfig = new RouteConfig(null, null, null, null);
 
         // Then
         assertThat(routeConfig).isNotNull();
