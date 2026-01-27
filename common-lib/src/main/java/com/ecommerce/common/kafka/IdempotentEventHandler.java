@@ -30,7 +30,7 @@ public class IdempotentEventHandler {
     @Transactional
     public boolean processIdempotently(String eventId, String eventType, Runnable handler) {
         if (processedEventRepository.existsByEventId(eventId)) {
-            log.info("Event already processed, skipping: eventId={}, type={}", eventId, eventType);
+            log.info("Event already processed (check), skipping: eventId={}, type={}", eventId, eventType);
             return false;
         }
 
@@ -39,6 +39,9 @@ public class IdempotentEventHandler {
             processedEventRepository.save(ProcessedEvent.create(eventId, eventType));
             log.debug("Event processed successfully: eventId={}, type={}", eventId, eventType);
             return true;
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            log.info("Event already processed (race condition), skipping: eventId={}, type={}", eventId, eventType);
+            return false;
         } catch (Exception e) {
             log.error("Error processing event: eventId={}, type={}, error={}", eventId, eventType, e.getMessage());
             throw e;
