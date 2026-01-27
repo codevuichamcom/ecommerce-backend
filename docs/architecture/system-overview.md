@@ -185,7 +185,7 @@ To prevent duplicate processing (e.g., creating an order twice due to network re
 While the current architecture is robust, a "Production Grade" system requires addressing these advanced concerns:
 
 ### 1. Observability (The "Missing Link")
-*   **Distributed Tracing**: Currently, logs are isolated. We need **OpenTelemetry** or **Zipkin** to propagate a `TraceId` across HTTP and Kafka boundaries. This allows visualizing the full `Order -> Payment -> Inventory` flow in one view.
+*   **Distributed Tracing**: Implemented using **Zipkin** and **Micrometer Tracing**. `TraceId` and `SpanId` are propagated across HTTP and Kafka headers, allowing full visualization of `Order -> Payment -> Inventory` flows.
 *   **Structured Logging**: All logs should be in JSON format with correlation IDs injected automatically.
 
 ### 2. Resilience Patterns

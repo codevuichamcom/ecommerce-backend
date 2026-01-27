@@ -174,7 +174,8 @@ public class SecurityConfig {
 - ✅ JWT signature validation
 - ✅ Token expiration (1 hour)
 - ✅ Refresh token rotation
-- 🔄 Multi-factor authentication (MFA) - *Planned*
+- ✅ Refresh token rotation
+- ✅ Timing attack prevention (Fixed time comparison with DUMMY_HASH)
 
 #### Tampering with Data
 
@@ -349,11 +350,11 @@ spring:
 **Implementation**: Redis-based token bucket
 
 **Limits**:
-| Tier | Requests/Minute | Burst |
+| Tier | Requests/Minute (Approx) | Burst (Tokens) |
 |------|-----------------|-------|
-| **Anonymous** | 10 | 5 |
-| **Authenticated** | 100 | 20 |
-| **Premium** | 1000 | 100 |
+| **Anonymous** | 600 (10/sec) | 20 |
+| **Authenticated** | 3000 (50/sec) | 100 |
+| **Premium** | 6000 (100/sec) | 200 |
 
 **Response Headers**:
 ```http
@@ -678,5 +679,5 @@ data:
 ---
 
 **Document Version**: 2.0  
-**Last Updated**: 2026-01-19  
+**Last Updated**: 2026-01-27  
 **Maintained By**: Security Team

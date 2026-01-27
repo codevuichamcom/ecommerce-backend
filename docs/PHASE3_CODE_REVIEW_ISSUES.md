@@ -1,8 +1,8 @@
 # Phase 3 Code Review Issues
 
-**Review Date:** 2026-01-18
+**Review Date:** 2026-01-27
 **Reviewer:** Senior Java Backend Developer
-**Status:** Pending Fixes
+**Status:** In Progress (Most P0/P1 Fixed)
 
 ---
 
@@ -60,7 +60,7 @@ public JwtAuthenticationFilter(@Value("${jwt.secret}") String secret) {
 }
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Validated in JwtAuthenticationFilter)
 
 ---
 
@@ -96,7 +96,7 @@ ServerHttpRequest mutatedRequest = request.mutate()
         .build();
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Implemented sanitizeHeaderValue)
 
 ---
 
@@ -141,7 +141,7 @@ return Mono.justOrEmpty(exchange.getRequest().getRemoteAddress())
     .defaultIfEmpty("unknown");
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Used Mono.justOrEmpty)
 
 ---
 
@@ -174,7 +174,7 @@ User user = userRepository.findByUsername(request.username())
         });
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Added dummy hash comparison)
 
 ---
 
@@ -210,7 +210,7 @@ public void onPaymentCompleted(String orderId) {
 orderService.onPaymentCompleted(event.orderId());
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Delegated to OrderService)
 
 ---
 
@@ -261,7 +261,7 @@ public void handleOrderCancelled(String orderId) {
 2. Or include items in OrderCancelled event
 3. Or store reservation mapping table
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Implemented handleOrderCancelled in InventoryService)
 
 ---
 
@@ -353,7 +353,7 @@ if (!redisTemplate.opsForValue().setIfAbsent(idempotencyKey, "1", Duration.ofMin
 }
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Implemented DataIntegrityViolationException handling)
 
 ---
 
@@ -505,7 +505,7 @@ public TokenValidationResult validateToken(String token) {
 }
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Implemented TokenValidationResult)
 
 ---
 
@@ -528,7 +528,7 @@ int daysToKeep = 7;
 private int daysToKeep;
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Externalized to application properties)
 
 ---
 
@@ -558,7 +558,7 @@ private boolean isAlreadyProcessed(String eventId) {
 }
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Added null checks and validation)
 
 ---
 
@@ -619,7 +619,7 @@ public void startCompensating() {
 }
 ```
 
-**Status:** [ ] Not Started
+**Status:** [x] Fixed (Added state transition validation)
 
 ---
 

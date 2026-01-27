@@ -6,20 +6,26 @@ This document details the **Order Saga**, a sequence of local transactions that 
 
 The central source of truth for an order's lifecycle is the `Order` aggregate in the Order Service.
 
-```mermaid
 stateDiagram-v2
-    [*] --> PENDING: Create Order
+    [*] --> STARTED: Create Order
     
-    PENDING --> CANCELLED: Stock Reservation Failed / User Cancel
-    PENDING --> CONFIRMED: Payment Successful
+    STARTED --> INVENTORY_RESERVED: Inventory Reserved
+    STARTED --> INVENTORY_FAILED: Out of Stock
     
-    CONFIRMED --> CANCELLED: Refund Initiated
+    INVENTORY_RESERVED --> PAYMENT_COMPLETED: Payment Success
+    INVENTORY_RESERVED --> PAYMENT_FAILED: Payment Declined
     
-    CANCELLED --> [*]
-    CONFIRMED --> SHIPPED: (Phase 3)
-    SHIPPED --> DELIVERED: (Phase 3)
-    DELIVERED --> [*]
-```
+    PAYMENT_COMPLETED --> COMPLETED: Order Confirmed
+    
+    INVENTORY_FAILED --> COMPENSATING: Start Compensation
+    PAYMENT_FAILED --> COMPENSATING: Start Compensation
+    
+    COMPENSATING --> COMPENSATED: Compensation Logic Done
+    COMPENSATING --> FAILED: Compensation Failed (Manual Fix)
+    
+    COMPENSATED --> [*]
+    COMPLETED --> [*]
+    FAILED --> [*]
 
 ---
 
