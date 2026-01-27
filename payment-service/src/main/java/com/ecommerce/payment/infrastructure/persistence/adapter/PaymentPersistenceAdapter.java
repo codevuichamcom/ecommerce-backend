@@ -16,34 +16,38 @@ import java.util.Optional;
 public class PaymentPersistenceAdapter implements PaymentRepository {
 
     private final PaymentJpaRepository jpaRepository;
+    private final com.ecommerce.payment.infrastructure.persistence.mapper.PaymentMapper paymentMapper;
 
-    public PaymentPersistenceAdapter(PaymentJpaRepository jpaRepository) {
+    public PaymentPersistenceAdapter(
+            PaymentJpaRepository jpaRepository,
+            com.ecommerce.payment.infrastructure.persistence.mapper.PaymentMapper paymentMapper) {
         this.jpaRepository = jpaRepository;
+        this.paymentMapper = paymentMapper;
     }
 
     @Override
     @SuppressWarnings("null")
     public Payment save(Payment payment) {
-        var entity = PaymentMapper.toEntity(payment);
-        return PaymentMapper.toDomain(jpaRepository.save(entity));
+        var entity = paymentMapper.toEntity(payment);
+        return paymentMapper.toDomainEntity(jpaRepository.save(entity));
     }
 
     @Override
     public Optional<Payment> findById(PaymentId id) {
         return jpaRepository.findById(java.util.Objects.requireNonNull(id.value()))
-                .map(PaymentMapper::toDomain);
+                .map(paymentMapper::toDomainEntity);
     }
 
     @Override
     public Optional<Payment> findByOrderId(String orderId) {
         return jpaRepository.findByOrderId(orderId)
-                .map(PaymentMapper::toDomain);
+                .map(paymentMapper::toDomainEntity);
     }
 
     @Override
     public List<Payment> findByCustomerId(String customerId) {
         return jpaRepository.findByCustomerId(customerId).stream()
-                .map(PaymentMapper::toDomain)
+                .map(paymentMapper::toDomainEntity)
                 .toList();
     }
 
