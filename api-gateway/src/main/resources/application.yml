@@ -32,14 +32,20 @@ spring:
       # Default filters applied to all routes
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-      
       # Discovery configuration (disabled for now, using static routes)
       discovery:
         locator:
           enabled: false
+  
+  # Redis
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
 
-# App Services Configuration
-app:
+# App Services Configuration (Renamed to ecommerce to avoid IDE conflicts)
+ecommerce:
   services:
     product-url: ${SERVICE_PRODUCT_URL:http://localhost:8081}
     inventory-url: ${SERVICE_INVENTORY_URL:http://localhost:8082}
@@ -47,13 +53,6 @@ app:
     payment-url: ${SERVICE_PAYMENT_URL:http://localhost:8084}
     notification-url: ${SERVICE_NOTIFICATION_URL:http://localhost:8085}
     auth-url: ${SERVICE_AUTH_URL:http://localhost:8086}
-
-  # Redis
-  data:
-    redis:
-      host: ${SPRING_REDIS_HOST:localhost}
-      port: ${SPRING_REDIS_PORT:6379}
-      password: ${SPRING_REDIS_PASSWORD:}
 
 # Server configuration
 server:

@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Configuration
-@ConfigurationProperties(prefix = "app.services")
+@ConfigurationProperties(prefix = "ecommerce.services")
 @Getter
 @Setter
 public class ServiceProperties {
