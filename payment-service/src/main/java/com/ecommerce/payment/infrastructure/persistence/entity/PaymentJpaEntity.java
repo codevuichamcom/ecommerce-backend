@@ -13,7 +13,11 @@ import java.time.Instant;
  * JPA entity for Payment.
  */
 @Entity
-@Table(name = "payments")
+@Table(name = "payments", indexes = {
+        @Index(name = "idx_payments_order_id", columnList = "order_id", unique = true),
+        @Index(name = "idx_payments_customer_id", columnList = "customer_id"),
+        @Index(name = "idx_payments_status", columnList = "status")
+})
 @Getter
 @Setter
 @NoArgsConstructor
