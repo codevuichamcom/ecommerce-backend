@@ -37,6 +37,7 @@ public class ProductServiceClient implements ProductServicePort {
                     .uri("/api/products/{id}", productId)
                     .retrieve()
                     .bodyToMono(ProductApiResponse.class)
+                    .timeout(java.time.Duration.ofSeconds(3))
                     .block();
 
             if (response == null || !response.success() || response.data() == null) {
@@ -52,7 +53,7 @@ public class ProductServiceClient implements ProductServicePort {
                     data.available());
         } catch (Exception e) {
             log.error("Failed to fetch product {}: {}", productId, e.getMessage());
-            throw new NotFoundException("Product", productId);
+            throw e;
         }
     }
 

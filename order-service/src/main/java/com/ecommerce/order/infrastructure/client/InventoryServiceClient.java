@@ -38,6 +38,7 @@ public class InventoryServiceClient implements InventoryServicePort {
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(StockOperationApiResponse.class)
+                    .timeout(java.time.Duration.ofSeconds(3))
                     .block();
 
             if (response == null) {
@@ -74,6 +75,7 @@ public class InventoryServiceClient implements InventoryServicePort {
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(StockOperationApiResponse.class)
+                    .timeout(java.time.Duration.ofSeconds(3))
                     .block();
 
             log.debug("Released stock for product {}", productId);
