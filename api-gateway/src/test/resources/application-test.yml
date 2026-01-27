@@ -3,6 +3,8 @@ spring:
     name: api-gateway-test
   
   cloud:
+    compatibility-verifier:
+      enabled: false
     gateway:
       discovery:
         locator:
@@ -10,10 +12,16 @@ spring:
 
 # Disable actuator endpoints for tests
 management:
+  endpoint:
+    gateway:
+      enabled: true
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,gateway
+  health:
+    redis:
+      enabled: false
   tracing:
     enabled: false
   zipkin:
@@ -25,3 +33,7 @@ logging:
   level:
     root: WARN
     "[com.ecommerce.gateway]": INFO
+
+# JWT Configuration
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970

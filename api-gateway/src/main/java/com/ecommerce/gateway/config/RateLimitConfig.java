@@ -38,6 +38,7 @@ public class RateLimitConfig {
     }
 
     @Bean
+    @Primary
     public RedisRateLimiter userRateLimiter() {
         return new RedisRateLimiter(50, 100); // 50 replenish rate, 100 burst capacity
     }
