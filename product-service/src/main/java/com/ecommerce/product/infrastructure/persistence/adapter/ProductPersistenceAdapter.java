@@ -3,6 +3,7 @@ package com.ecommerce.product.infrastructure.persistence.adapter;
 import com.ecommerce.product.domain.model.Product;
 import com.ecommerce.product.domain.model.ProductId;
 import com.ecommerce.product.domain.repository.ProductRepository;
+import com.ecommerce.product.infrastructure.persistence.mapper.ProductMapper;
 import com.ecommerce.product.infrastructure.persistence.repository.ProductJpaRepository;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +19,9 @@ import java.util.Optional;
 public class ProductPersistenceAdapter implements ProductRepository {
 
     private final ProductJpaRepository jpaRepository;
-    private final com.ecommerce.product.infrastructure.persistence.mapper.ProductMapper productMapper;
+    private final ProductMapper productMapper;
 
-    public ProductPersistenceAdapter(
-            ProductJpaRepository jpaRepository,
-            com.ecommerce.product.infrastructure.persistence.mapper.ProductMapper productMapper) {
+    public ProductPersistenceAdapter(ProductJpaRepository jpaRepository, ProductMapper productMapper) {
         this.jpaRepository = jpaRepository;
         this.productMapper = productMapper;
     }

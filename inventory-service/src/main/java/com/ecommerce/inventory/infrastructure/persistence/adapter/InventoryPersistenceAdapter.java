@@ -4,6 +4,7 @@ import com.ecommerce.inventory.domain.model.Inventory;
 import com.ecommerce.inventory.domain.model.InventoryId;
 import com.ecommerce.inventory.domain.repository.InventoryRepository;
 import com.ecommerce.inventory.infrastructure.persistence.entity.InventoryJpaEntity;
+import com.ecommerce.inventory.infrastructure.persistence.mapper.InventoryMapper;
 import com.ecommerce.inventory.infrastructure.persistence.repository.InventoryJpaRepository;
 import org.springframework.stereotype.Component;
 
@@ -17,11 +18,9 @@ import java.util.Optional;
 public class InventoryPersistenceAdapter implements InventoryRepository {
 
     private final InventoryJpaRepository jpaRepository;
-    private final com.ecommerce.inventory.infrastructure.persistence.mapper.InventoryMapper inventoryMapper;
+    private final InventoryMapper inventoryMapper;
 
-    public InventoryPersistenceAdapter(
-            InventoryJpaRepository jpaRepository,
-            com.ecommerce.inventory.infrastructure.persistence.mapper.InventoryMapper inventoryMapper) {
+    public InventoryPersistenceAdapter(InventoryJpaRepository jpaRepository, InventoryMapper inventoryMapper) {
         this.jpaRepository = jpaRepository;
         this.inventoryMapper = inventoryMapper;
     }

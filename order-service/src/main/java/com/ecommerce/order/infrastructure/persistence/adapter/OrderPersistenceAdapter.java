@@ -2,6 +2,7 @@ package com.ecommerce.order.infrastructure.persistence.adapter;
 
 import com.ecommerce.order.domain.model.*;
 import com.ecommerce.order.domain.repository.OrderRepository;
+import com.ecommerce.order.infrastructure.persistence.mapper.OrderMapper;
 import com.ecommerce.order.infrastructure.persistence.repository.OrderJpaRepository;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +17,9 @@ import java.util.Optional;
 public class OrderPersistenceAdapter implements OrderRepository {
 
     private final OrderJpaRepository jpaRepository;
-    private final com.ecommerce.order.infrastructure.persistence.mapper.OrderMapper orderMapper;
+    private final OrderMapper orderMapper;
 
-    public OrderPersistenceAdapter(
-            OrderJpaRepository jpaRepository,
-            com.ecommerce.order.infrastructure.persistence.mapper.OrderMapper orderMapper) {
+    public OrderPersistenceAdapter(OrderJpaRepository jpaRepository, OrderMapper orderMapper) {
         this.jpaRepository = jpaRepository;
         this.orderMapper = orderMapper;
     }

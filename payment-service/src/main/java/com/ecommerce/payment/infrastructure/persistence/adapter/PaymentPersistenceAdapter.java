@@ -3,6 +3,7 @@ package com.ecommerce.payment.infrastructure.persistence.adapter;
 import com.ecommerce.payment.domain.model.Payment;
 import com.ecommerce.payment.domain.model.PaymentId;
 import com.ecommerce.payment.domain.repository.PaymentRepository;
+import com.ecommerce.payment.infrastructure.persistence.mapper.PaymentMapper;
 import com.ecommerce.payment.infrastructure.persistence.repository.PaymentJpaRepository;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +17,9 @@ import java.util.Optional;
 public class PaymentPersistenceAdapter implements PaymentRepository {
 
     private final PaymentJpaRepository jpaRepository;
-    private final com.ecommerce.payment.infrastructure.persistence.mapper.PaymentMapper paymentMapper;
+    private final PaymentMapper paymentMapper;
 
-    public PaymentPersistenceAdapter(
-            PaymentJpaRepository jpaRepository,
-            com.ecommerce.payment.infrastructure.persistence.mapper.PaymentMapper paymentMapper) {
+    public PaymentPersistenceAdapter(PaymentJpaRepository jpaRepository, PaymentMapper paymentMapper) {
         this.jpaRepository = jpaRepository;
         this.paymentMapper = paymentMapper;
     }
