@@ -179,29 +179,56 @@ public class InventoryService {
      */
     @Transactional
     public void handleOrderCreated(String orderId, com.fasterxml.jackson.databind.JsonNode itemsNode) {
-        log.info("Handling OrderCreated for order {}", orderId);
+        log.info("Handling OrderCreated for order {}: reserving stock for items", orderId);
 
-        // For simplicity in this phase, we'll assume 1 item per order for the saga flow
-        // demo
-        // Or we iterate and reserve. If any fails, we should fail the whole order (not
-        // implemented here for brevity)
-        // Let's support the first item for now or simple iteration
+        if (itemsNode == null || !itemsNode.isArray() || itemsNode.size() == 0) {
+            log.warn("No items found in order {}", orderId);
+            return;
+        }
 
-        if (itemsNode.isArray() && itemsNode.size() > 0) {
-            var item = itemsNode.get(0);
+        java.util.List<com.ecommerce.inventory.application.dto.ReserveStockCommand> successfulReservations = new java.util.ArrayList<>();
+        boolean allSuccessful = true;
+        String failureReason = "";
+
+        for (com.fasterxml.jackson.databind.JsonNode item : itemsNode) {
             String productId = item.get("productId").asText();
             int quantity = item.get("quantity").asInt();
-            String reservationId = orderId; // Use orderId as reservation reference
+            String reservationId = orderId;
 
-            var result = reserveStock(new ReserveStockCommand(productId, quantity, reservationId));
+            var command = new com.ecommerce.inventory.application.dto.ReserveStockCommand(productId, quantity,
+                    reservationId);
+            var result = reserveStock(command);
 
             if (result.success()) {
+                successfulReservations.add(command);
                 eventProducer.publishStockReserved(productId, orderId, quantity, result.availableQuantity());
-                // Signal that all items (in this simplified single-item case) are reserved
-                eventProducer.publishAllItemsReserved(orderId);
             } else {
+                allSuccessful = false;
+                failureReason = result.message();
+                log.warn("Failed to reserve product {} for order {}: {}", productId, orderId, failureReason);
                 eventProducer.publishStockReservationFailed(productId, orderId, quantity, result.availableQuantity());
+                break;
             }
+        }
+
+        if (allSuccessful) {
+            log.info("Successfully reserved all items for order {}", orderId);
+            eventProducer.publishAllItemsReserved(orderId);
+        } else {
+            log.error("Failed to reserve all items for order {}. Rolling back {} successful reservations.",
+                    orderId, successfulReservations.size());
+
+            // Rollback successful reservations in this batch
+            for (var cmd : successfulReservations) {
+                try {
+                    releaseStock(new com.ecommerce.inventory.application.dto.ReleaseStockCommand(
+                            cmd.productId(), cmd.quantity(), cmd.reservationReference()));
+                } catch (Exception e) {
+                    log.error("Failed to rollback reservation for product {} in order {}: {}",
+                            cmd.productId(), orderId, e.getMessage());
+                }
+            }
+            // The StockReservationFailed for the failing item was already sent in the loop
         }
     }
 
