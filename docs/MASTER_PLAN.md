@@ -12,7 +12,7 @@ Modern e-commerce backend built with **Java 21** and **Spring Boot 3.5.9** follo
 |-------|-------|--------|
 | **Phase 1** | Core Domain (Product, Inventory, Order) | ✅ Complete |
 | **Phase 2** | Distributed Flow (Payment, Notification, Kafka) | ✅ Complete |
-| **Phase 3** | Enterprise (Security, Gateway, Observability) | ✅ Complete |
+| **Phase 3** | Enterprise (Security, Gateway, Observability) | 🔄 In Progress (~80%) |
 | **Phase 4** | Resilience & Testing (Circuit Breaker, Chaos) | 🔜 Planned |
 
 ---
