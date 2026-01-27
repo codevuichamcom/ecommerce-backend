@@ -210,34 +210,27 @@ public class InventoryService {
      * Releases stock if it was reserved.
      */
     @Transactional
-    public void handleOrderCancelled(String orderId) {
-        log.info("Handling OrderCancelled for order {}", orderId);
+    public void handleOrderCancelled(String orderId, com.fasterxml.jackson.databind.JsonNode itemsNode) {
+        log.info("Handling OrderCancelled for order {}: releasing stock for {} items",
+                orderId, itemsNode != null ? itemsNode.size() : 0);
 
-        // We need to know which products were reserved.
-        // In a real system, we'd look up the Reservation or check the Order details.
-        // For this simplified implementation, we might need to assume we can find the
-        // reservation by ID (orderId)
-        // But Inventory aggregate stores reservations by internal ID.
-        // We might need to query inventory that has this reservation.
+        if (itemsNode != null && itemsNode.isArray()) {
+            itemsNode.forEach(item -> {
+                String productId = item.get("productId").asText();
+                int quantity = item.get("quantity").asInt();
+                String reservationId = orderId;
 
-        // Workaround: We will search for inventory that has this reservationRef
-        // (orderId)
-        // This requires a new repository method or we assume productId is passed in
-        // event (it is not in standard OrderCancelled)
-        // Let's assume for this demo that we can't easily release without productId.
-        // PROPER FIX: OrderCancelled event should include items or we store reservation
-        // mapping.
+                log.debug("Releasing stock: productId={}, quantity={}, orderId={}",
+                        productId, quantity, orderId);
 
-        // Let's add a method to repo to find inventory by reservation ref
-        /*
-         * var inventories = inventoryRepository.findByReservationRef(orderId);
-         * for (var inv : inventories) {
-         * releaseStock(new ReleaseStockCommand(inv.getProductId(), quantity, orderId));
-         * }
-         */
-
-        // Since we don't have that yet, and time is tight, let's log a warning.
-        log.warn("Stock release for OrderCancelled {} not fully implemented without ProductID lookup", orderId);
+                try {
+                    releaseStock(new ReleaseStockCommand(productId, quantity, reservationId));
+                } catch (Exception e) {
+                    log.error("Failed to release stock for product {} in order {}: {}",
+                            productId, orderId, e.getMessage());
+                }
+            });
+        }
     }
 
     private Inventory findByProductIdOrThrow(String productId) {

@@ -86,15 +86,18 @@ public sealed interface OrderEvents extends DomainEvent {
             Instant occurredAt,
             String orderId,
             String customerId,
+            List<OrderItemData> items,
             String reason,
             boolean requiresRefund) implements OrderEvents {
 
-        public static OrderCancelled create(String orderId, String customerId, String reason, boolean requiresRefund) {
+        public static OrderCancelled create(String orderId, String customerId, List<OrderItemData> items, String reason,
+                boolean requiresRefund) {
             return new OrderCancelled(
                     UUID.randomUUID().toString(),
                     Instant.now(),
                     orderId,
                     customerId,
+                    items,
                     reason,
                     requiresRefund);
         }

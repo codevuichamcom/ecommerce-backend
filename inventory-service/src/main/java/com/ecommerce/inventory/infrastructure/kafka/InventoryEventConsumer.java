@@ -80,9 +80,10 @@ public class InventoryEventConsumer {
         idempotentEventHandler.processIdempotently(eventId, "OrderCancelled", () -> {
             try {
                 String orderId = jsonNode.get("orderId").asText();
+                JsonNode itemsNode = jsonNode.get("items");
                 log.info("Releasing stock for order: {}", orderId);
 
-                inventoryService.handleOrderCancelled(orderId);
+                inventoryService.handleOrderCancelled(orderId, itemsNode);
 
             } catch (Exception e) {
                 log.error("Error processing OrderCancelled event: {}", e.getMessage(), e);
