@@ -8,6 +8,11 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7" apply false
 }
 
+// Phase 4: Resilience & Testing - Version Management
+ext {
+    set("resilience4jVersion", "2.2.0")
+}
+
 
 // Common configuration for all subprojects
 subprojects {

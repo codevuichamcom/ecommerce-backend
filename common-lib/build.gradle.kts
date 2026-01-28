@@ -33,7 +33,14 @@ dependencies {
     api("org.springframework.security:spring-security-core")
     api("jakarta.servlet:jakarta.servlet-api:6.0.0")
 
+    // Phase 4: Resilience4j
+    api("io.github.resilience4j:resilience4j-spring-boot3:2.2.0")
+    api("io.github.resilience4j:resilience4j-circuitbreaker:2.2.0")
+    api("io.github.resilience4j:resilience4j-retry:2.2.0")
+    api("io.github.resilience4j:resilience4j-bulkhead:2.2.0")
+    api("io.github.resilience4j:resilience4j-timelimiter:2.2.0")
+    api("io.github.resilience4j:resilience4j-micrometer:2.2.0")
+
     // Testing
     testImplementation("org.junit.platform:junit-platform-launcher")
 }
-
