@@ -27,5 +27,8 @@ public interface InventoryServicePort {
 
         record ServiceUnavailable(String message) implements ReservationResult {
         }
+
+        record Pending(String taskId) implements ReservationResult {
+        }
     }
 }

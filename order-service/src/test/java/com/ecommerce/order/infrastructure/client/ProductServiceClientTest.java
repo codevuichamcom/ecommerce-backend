@@ -58,7 +58,10 @@ class ProductServiceClientTest {
         // Create client
         productServiceClient = new ProductServiceClient(
                 WebClient.builder(),
-                serviceProperties);
+                serviceProperties,
+                null, // RedisTemplate not needed for basic tests
+                null // ObjectMapper not needed for basic tests
+        );
     }
 
     @AfterEach

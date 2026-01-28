@@ -20,6 +20,11 @@ public interface ProductServicePort {
             String name,
             BigDecimal price,
             String currency,
-            boolean available) {
+            boolean available,
+            boolean isDegraded) {
+
+        public ProductDetails(String id, String name, BigDecimal price, String currency, boolean available) {
+            this(id, name, price, currency, available, false);
+        }
     }
 }

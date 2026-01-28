@@ -69,7 +69,13 @@ class ProductServiceClientIntegrationTest {
         public ProductServiceClient testProductServiceClient(
                 WebClient.Builder webClientBuilder,
                 ServiceProperties serviceProperties) {
-            return new ProductServiceClient(webClientBuilder, serviceProperties);
+            // Mock Redis and ObjectMapper for testing resilience patterns
+            // We don't test caching logic here, effectively disabling fallback cache
+            return new ProductServiceClient(
+                    webClientBuilder,
+                    serviceProperties,
+                    org.mockito.Mockito.mock(org.springframework.data.redis.core.StringRedisTemplate.class),
+                    new com.fasterxml.jackson.databind.ObjectMapper());
         }
     }
 
