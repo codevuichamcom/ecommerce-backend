@@ -143,11 +143,50 @@ See [PHASE3_IMPLEMENTATION_PLAN.md](./PHASE3_IMPLEMENTATION_PLAN.md) for details
 
 ---
 
+## 🛡️ Phase 4: Resilience & Testing
+
+### Core Features
+1. **Resilience4j Integration**
+   - Circuit Breaker for inter-service calls
+   - Retry with exponential backoff
+   - Bulkhead isolation
+   - TimeLimiter for timeouts
+
+2. **Fallback & Graceful Degradation**
+   - Cache-based fallbacks
+   - Retry queue for failed operations
+   - Degraded response handling
+
+3. **Chaos Engineering**
+   - Chaos Monkey for Spring Boot
+   - Toxiproxy for network chaos
+   - Failure scenario testing
+
+4. **Comprehensive Testing**
+   - Contract Testing (Spring Cloud Contract)
+   - Load Testing (Gatling)
+   - E2E Testing (TestContainers)
+
+### New Modules
+- `chaos-testing/` - Chaos engineering scenarios
+- `load-testing/` - Gatling performance tests
+- `e2e-testing/` - End-to-end test suite
+- `contracts/` - API contract definitions
+
+### Out of Scope (Keep Simple)
+- ❌ Service Mesh (Istio) - Resilience4j đủ dùng
+- ❌ Full Chaos Mesh - Chỉ cần khi có K8s production
+- ❌ Mutation Testing - Nice-to-have, không critical
+
+See [PHASE4_IMPLEMENTATION_PLAN.md](./PHASE4_IMPLEMENTATION_PLAN.md) for details.
+
+---
+
 ## 📁 Project Structure
 
 ```
 ecommerce-backend/
-├── common-lib/           # Shared code
+├── common-lib/           # Shared code + Resilience4j (Phase 4)
 ├── api-gateway/          # Port 8080 (Phase 3)
 ├── auth-service/         # Port 8086 (Phase 3)
 ├── product-service/      # Port 8081
@@ -155,8 +194,14 @@ ecommerce-backend/
 ├── order-service/        # Port 8083
 ├── payment-service/      # Port 8084 (Phase 2)
 ├── notification-service/ # Port 8085 (Phase 2)
+├── chaos-testing/        # Chaos scenarios (Phase 4)
+├── load-testing/         # Gatling tests (Phase 4)
+├── e2e-testing/          # E2E tests (Phase 4)
+├── contracts/            # API contracts (Phase 4)
 ├── docker/
 │   ├── docker-compose.yml
+│   ├── docker-compose.chaos.yml  # Phase 4
+│   ├── docker-compose.e2e.yml    # Phase 4
 │   ├── prometheus/       # Phase 3
 │   └── grafana/          # Phase 3
 ├── docs/
