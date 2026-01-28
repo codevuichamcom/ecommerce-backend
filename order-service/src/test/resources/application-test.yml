@@ -35,3 +35,63 @@ services:
 logging:
   level:
     com.ecommerce: DEBUG
+    io.github.resilience4j: DEBUG
+
+# Phase 4.1: Resilience4j Configuration for Tests
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 2s
+    instances:
+      product-service:
+        baseConfig: default
+      inventory-service:
+        baseConfig: default
+        failureRateThreshold: 40
+
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 100ms  # Shorter for tests
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+    instances:
+      product-service:
+        baseConfig: default
+      inventory-service:
+        baseConfig: default
+        maxAttempts: 4
+
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 25
+        maxWaitDuration: 500ms
+    instances:
+      product-service:
+        baseConfig: default
+      inventory-service:
+        maxConcurrentCalls: 50
+        maxWaitDuration: 1s
+
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 3s
+        cancelRunningFuture: true
+    instances:
+      product-service:
+        baseConfig: default
+      inventory-service:
+        timeoutDuration: 5s
