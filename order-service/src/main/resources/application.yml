@@ -93,3 +93,72 @@ logging:
   level:
     "[com.ecommerce]": DEBUG
     "[org.hibernate.SQL]": DEBUG
+
+# Phase 4.1: Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 2s
+        recordExceptions:
+          - java.net.ConnectException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+          - com.ecommerce.common.exception.BusinessException
+    instances:
+      product-service:
+        baseConfig: default
+      inventory-service:
+        baseConfig: default
+        failureRateThreshold: 40  # More sensitive for inventory
+
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - java.net.ConnectException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+          - com.ecommerce.common.exception.BusinessException
+    instances:
+      product-service:
+        baseConfig: default
+      inventory-service:
+        baseConfig: default
+        maxAttempts: 4
+
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 25
+        maxWaitDuration: 500ms
+    instances:
+      product-service:
+        baseConfig: default
+      inventory-service:
+        maxConcurrentCalls: 50
+        maxWaitDuration: 1s
+
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 3s
+        cancelRunningFuture: true
+    instances:
+      product-service:
+        baseConfig: default
+      inventory-service:
+        timeoutDuration: 5s

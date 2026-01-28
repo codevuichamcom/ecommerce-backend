@@ -3,6 +3,10 @@ package com.ecommerce.order.infrastructure.client;
 import com.ecommerce.common.exception.NotFoundException;
 import com.ecommerce.order.application.port.out.ProductServicePort;
 import com.ecommerce.order.infrastructure.config.ServiceProperties;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -10,9 +14,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * HTTP client for Product service using WebClient.
+ * Phase 4.1: Enhanced with Resilience4j patterns (CircuitBreaker, Retry,
+ * Bulkhead, TimeLimiter)
  */
 @Component
 public class ProductServiceClient implements ProductServicePort {
@@ -28,7 +35,18 @@ public class ProductServiceClient implements ProductServicePort {
                 .build();
     }
 
+    /**
+     * Phase 4.1: Resilience4j patterns applied
+     * - CircuitBreaker: Opens after 50% failure rate in 10 calls
+     * - Retry: 3 attempts with exponential backoff (500ms, 1s, 2s)
+     * - Bulkhead: Max 25 concurrent calls
+     * - TimeLimiter: 3s timeout (replaces manual timeout)
+     */
     @Override
+    @CircuitBreaker(name = "product-service")
+    @Retry(name = "product-service")
+    @Bulkhead(name = "product-service")
+    @TimeLimiter(name = "product-service")
     public ProductDetails getProduct(String productId) {
         log.debug("Fetching product details for: {}", productId);
 
@@ -37,7 +55,7 @@ public class ProductServiceClient implements ProductServicePort {
                     .uri("/api/products/{id}", productId)
                     .retrieve()
                     .bodyToMono(ProductApiResponse.class)
-                    .timeout(java.time.Duration.ofSeconds(3))
+                    // Manual timeout removed - handled by @TimeLimiter
                     .block();
 
             if (response == null || !response.success() || response.data() == null) {

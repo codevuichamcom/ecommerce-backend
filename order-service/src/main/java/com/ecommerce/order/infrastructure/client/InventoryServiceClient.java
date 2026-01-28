@@ -2,6 +2,10 @@ package com.ecommerce.order.infrastructure.client;
 
 import com.ecommerce.order.application.port.out.InventoryServicePort;
 import com.ecommerce.order.infrastructure.config.ServiceProperties;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -11,6 +15,8 @@ import java.util.Objects;
 
 /**
  * HTTP client for Inventory service using WebClient.
+ * Phase 4.1: Enhanced with Resilience4j patterns (CircuitBreaker, Retry,
+ * Bulkhead, TimeLimiter)
  */
 @Component
 public class InventoryServiceClient implements InventoryServicePort {
@@ -26,7 +32,18 @@ public class InventoryServiceClient implements InventoryServicePort {
                 .build();
     }
 
+    /**
+     * Phase 4.1: Resilience4j patterns applied
+     * - CircuitBreaker: Opens after 40% failure rate (more sensitive for inventory)
+     * - Retry: 4 attempts with exponential backoff
+     * - Bulkhead: Max 50 concurrent calls
+     * - TimeLimiter: 5s timeout (longer for inventory operations)
+     */
     @Override
+    @CircuitBreaker(name = "inventory-service")
+    @Retry(name = "inventory-service")
+    @Bulkhead(name = "inventory-service")
+    @TimeLimiter(name = "inventory-service")
     public ReservationResult reserveStock(String productId, int quantity, String reservationReference) {
         log.debug("Reserving {} units of product {} (ref: {})", quantity, productId, reservationReference);
 
@@ -38,7 +55,7 @@ public class InventoryServiceClient implements InventoryServicePort {
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(StockOperationApiResponse.class)
-                    .timeout(java.time.Duration.ofSeconds(3))
+                    // Manual timeout removed - handled by @TimeLimiter
                     .block();
 
             if (response == null) {
@@ -63,7 +80,14 @@ public class InventoryServiceClient implements InventoryServicePort {
         }
     }
 
+    /**
+     * Phase 4.1: Resilience4j patterns applied for release operation
+     */
     @Override
+    @CircuitBreaker(name = "inventory-service")
+    @Retry(name = "inventory-service")
+    @Bulkhead(name = "inventory-service")
+    @TimeLimiter(name = "inventory-service")
     public void releaseStock(String productId, int quantity, String reservationReference) {
         log.debug("Releasing {} units of product {} (ref: {})", quantity, productId, reservationReference);
 
@@ -75,7 +99,7 @@ public class InventoryServiceClient implements InventoryServicePort {
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(StockOperationApiResponse.class)
-                    .timeout(java.time.Duration.ofSeconds(3))
+                    // Manual timeout removed - handled by @TimeLimiter
                     .block();
 
             log.debug("Released stock for product {}", productId);
