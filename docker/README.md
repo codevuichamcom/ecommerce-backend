@@ -54,7 +54,7 @@ docker-compose ps
 
 ### Start Infrastructure Only (For Local Development)
 ```bash
-docker-compose up -d postgres redis zookeeper kafka kafka-ui zipkin prometheus grafana
+docker-compose up -d postgres redis kafka kafka-ui zipkin prometheus grafana
 ```
 
 ## 📊 Resource Allocation
@@ -63,7 +63,7 @@ docker-compose up -d postgres redis zookeeper kafka kafka-ui zipkin prometheus g
 |---------|-----------|--------------|---------|
 | Postgres | 2.0 | 1GB | Database |
 | Redis | 1.0 | 512MB | Cache |
-| Kafka | 2.0 | 1GB | Message Broker |
+| Kafka (KRaft) | 2.0 | 1GB | Message Broker + Metadata |
 | Java Services | 1.0 | 512MB | Microservices |
 | Prometheus | 1.0 | 1GB | Metrics |
 | Grafana | 0.5 | 512MB | Dashboards |
@@ -84,6 +84,7 @@ All services use `restart: unless-stopped` for automatic recovery from failures.
 All images use specific versions (no `latest` tags) for reproducibility:
 - `postgres:16-alpine`
 - `redis:7.2-alpine`
+- `apache/kafka:3.7.0` (KRaft Mode)
 - `openzipkin/zipkin:3.4`
 - `prom/prometheus:v2.53.0`
 - `grafana/grafana:11.1.0`
