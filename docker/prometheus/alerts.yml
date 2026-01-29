@@ -1,0 +1,228 @@
+# ============================================================================
+# Prometheus Alert Rules for E-Commerce Backend
+# ============================================================================
+
+groups:
+  # ==========================================================================
+  # Infrastructure Alerts
+  # ==========================================================================
+  - name: infrastructure
+    interval: 30s
+    rules:
+      # PostgreSQL Alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL instance {{ $labels.instance }} has been down for more than 1 minute"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "PostgreSQL connection pool near limit"
+          description: "PostgreSQL is using {{ $value | humanizePercentage }} of max connections"
+
+      # Redis Alerts
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance {{ $labels.instance }} has been down for more than 1 minute"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using {{ $value | humanizePercentage }} of max memory"
+
+      # Kafka Alerts
+      - alert: KafkaDown
+        expr: up{job="kafka"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: messaging
+        annotations:
+          summary: "Kafka is down"
+          description: "Kafka instance {{ $labels.instance }} has been down for more than 1 minute"
+
+  # ==========================================================================
+  # Application Alerts
+  # ==========================================================================
+  - name: application
+    interval: 30s
+    rules:
+      # Service Health
+      - alert: ServiceDown
+        expr: up{job=~".*-service|api-gateway"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} on {{ $labels.instance }} has been down for more than 2 minutes"
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          rate(http_server_requests_seconds_count{status=~"5.."}[5m]) 
+          / 
+          rate(http_server_requests_seconds_count[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High error rate detected"
+          description: "Service {{ $labels.job }} has error rate of {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      # High Response Time
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, 
+            rate(http_server_requests_seconds_bucket[5m])
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High response time detected"
+          description: "Service {{ $labels.job }} has 95th percentile response time of {{ $value }}s (threshold: 1s)"
+
+  # ==========================================================================
+  # JVM Alerts
+  # ==========================================================================
+  - name: jvm
+    interval: 30s
+    rules:
+      # High Memory Usage
+      - alert: HighJVMMemoryUsage
+        expr: |
+          jvm_memory_used_bytes{area="heap"} 
+          / 
+          jvm_memory_max_bytes{area="heap"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: jvm
+        annotations:
+          summary: "High JVM heap memory usage"
+          description: "Service {{ $labels.job }} is using {{ $value | humanizePercentage }} of heap memory"
+
+      # High GC Time
+      - alert: HighGCTime
+        expr: |
+          rate(jvm_gc_pause_seconds_sum[5m]) 
+          / 
+          rate(jvm_gc_pause_seconds_count[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: jvm
+        annotations:
+          summary: "High GC pause time"
+          description: "Service {{ $labels.job }} has average GC pause time of {{ $value }}s"
+
+      # Thread Deadlock
+      - alert: ThreadDeadlock
+        expr: jvm_threads_deadlocked > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: jvm
+        annotations:
+          summary: "Thread deadlock detected"
+          description: "Service {{ $labels.job }} has {{ $value }} deadlocked threads"
+
+  # ==========================================================================
+  # Resource Alerts
+  # ==========================================================================
+  - name: resources
+    interval: 30s
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: resources
+        annotations:
+          summary: "High CPU usage"
+          description: "Service {{ $labels.job }} is using {{ $value | humanizePercentage }} CPU"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: resources
+        annotations:
+          summary: "Low disk space"
+          description: "Disk {{ $labels.mountpoint }} has only {{ $value | humanizePercentage }} space available"
+
+  # ==========================================================================
+  # Business Metrics Alerts
+  # ==========================================================================
+  - name: business
+    interval: 1m
+    rules:
+      # Order Processing Delay
+      - alert: OrderProcessingDelay
+        expr: |
+          histogram_quantile(0.95, 
+            rate(order_processing_duration_seconds_bucket[5m])
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Order processing is slow"
+          description: "95th percentile order processing time is {{ $value }}s (threshold: 30s)"
+
+      # Payment Failure Rate
+      - alert: HighPaymentFailureRate
+        expr: |
+          rate(payment_failed_total[5m]) 
+          / 
+          rate(payment_attempted_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: business
+        annotations:
+          summary: "High payment failure rate"
+          description: "Payment failure rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+
+      # Inventory Low Stock
+      - alert: LowInventoryStock
+        expr: inventory_stock_level < 10
+        for: 1m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Low inventory stock"
+          description: "Product {{ $labels.product_id }} has only {{ $value }} items in stock"

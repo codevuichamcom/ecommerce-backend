@@ -1,45 +1,57 @@
-# Stage 1: Build & Extract
-FROM gradle:jdk21-alpine AS builder
-WORKDIR /app
-ARG SERVICE_NAME
+# ============================================================================
+# Simple Dockerfile for Spring Boot Microservices
+# ============================================================================
+# Build: docker build --build-arg SERVICE_NAME=product-service -t product-service .
+# ============================================================================
 
-# Copy configuration files
+FROM gradle:8.11-jdk21-alpine AS builder
+
+ARG SERVICE_NAME
+WORKDIR /app
+
+# Copy gradle wrapper and build files first (better caching)
+COPY gradle gradle
+COPY gradlew .
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
-COPY gradle.properties* .
 
-# Copy source code of all modules
+# Copy common-lib first (needed by all services)
 COPY common-lib common-lib
-COPY api-gateway api-gateway
-COPY auth-service auth-service
-COPY product-service product-service
-COPY inventory-service inventory-service
-COPY order-service order-service
-COPY payment-service payment-service
-COPY notification-service notification-service
 
-# Build using system gradle (avoids ./gradlew permission/CRLF issues)
+# Copy the specific service
+COPY ${SERVICE_NAME} ${SERVICE_NAME}
+
+# Build the service
 RUN gradle :${SERVICE_NAME}:bootJar -x test --no-daemon
 
-# Extract layers using Spring Boot's layertools
-# We pick the executable jar (excluding the plain jar which lacks manifest)
-RUN JAR_FILE=$(ls ${SERVICE_NAME}/build/libs/*.jar | grep -v 'plain') && \
-    java -Djarmode=layertools -jar $JAR_FILE extract --destination extracted
+# Extract layers
+RUN mkdir -p extracted && \
+    JAR_FILE=$(find ${SERVICE_NAME}/build/libs -name "*.jar" ! -name "*-plain.jar") && \
+    java -Djarmode=layertools -jar "$JAR_FILE" extract --destination extracted
 
-# Stage 2: Final Image
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /application
+# ============================================================================
+# Runtime Stage
+# ============================================================================
+FROM eclipse-temurin:21-jre-alpine AS runtime
 
-# Create a new user to run the application (Security Best Practice)
-RUN addgroup -S spring && adduser -S spring -G spring
+WORKDIR /app
+
+# Install wget for health checks
+RUN apk add --no-cache wget curl
+
+# Create non-root user
+RUN addgroup -g 1001 spring && \
+    adduser -u 1001 -S spring -G spring
+
+# Copy application layers
+COPY --from=builder --chown=spring:spring /app/extracted/dependencies/ ./
+COPY --from=builder --chown=spring:spring /app/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=spring:spring /app/extracted/snapshot-dependencies/ ./
+COPY --from=builder --chown=spring:spring /app/extracted/application/ ./
+
 USER spring:spring
 
-# Copy the extracted layers from the builder stage
-COPY --from=builder /app/extracted/dependencies/ ./
-COPY --from=builder /app/extracted/spring-boot-loader/ ./
-COPY --from=builder /app/extracted/snapshot-dependencies/ ./
-COPY --from=builder /app/extracted/application/ ./
+# Don't expose a fixed port - let docker-compose handle it
+# Each service will use its own port via SERVER_PORT env var
 
-# Port will be mapped dynamically via docker-compose or environment variables
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
-
