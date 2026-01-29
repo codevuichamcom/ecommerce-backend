@@ -3,13 +3,12 @@ FROM gradle:jdk21-alpine AS builder
 WORKDIR /app
 ARG SERVICE_NAME
 
-# Copy Gradle wrapper and configuration
-COPY gradlew .
-COPY gradle gradle
+# Copy configuration files
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
+COPY gradle.properties* .
 
-# Copy source code of all modules (needed for dependencies like common-lib)
+# Copy source code of all modules
 COPY common-lib common-lib
 COPY api-gateway api-gateway
 COPY auth-service auth-service
@@ -19,12 +18,10 @@ COPY order-service order-service
 COPY payment-service payment-service
 COPY notification-service notification-service
 
-# Build the specific service being requested
-# Using -x test to speed up the build in Docker
-RUN ./gradlew :${SERVICE_NAME}:bootJar -x test --no-daemon
+# Build using system gradle (avoids ./gradlew permission/CRLF issues)
+RUN gradle :${SERVICE_NAME}:bootJar -x test --no-daemon
 
 # Extract layers using Spring Boot's layertools
-# We find the jar file dynamically because version numbers might change
 RUN java -Djarmode=layertools -jar ${SERVICE_NAME}/build/libs/*.jar extract --destination extracted
 
 # Stage 2: Final Image
