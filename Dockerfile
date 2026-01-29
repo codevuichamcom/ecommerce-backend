@@ -22,7 +22,9 @@ COPY notification-service notification-service
 RUN gradle :${SERVICE_NAME}:bootJar -x test --no-daemon
 
 # Extract layers using Spring Boot's layertools
-RUN java -Djarmode=layertools -jar ${SERVICE_NAME}/build/libs/*.jar extract --destination extracted
+# We pick the executable jar (excluding the plain jar which lacks manifest)
+RUN JAR_FILE=$(ls ${SERVICE_NAME}/build/libs/*.jar | grep -v 'plain') && \
+    java -Djarmode=layertools -jar $JAR_FILE extract --destination extracted
 
 # Stage 2: Final Image
 FROM eclipse-temurin:21-jre-alpine
