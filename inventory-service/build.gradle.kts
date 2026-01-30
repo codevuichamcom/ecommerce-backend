@@ -1,6 +1,7 @@
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    id("org.flywaydb.flyway") version "10.11.0"
 }
 
 description = "Inventory Service - Stock management with optimistic locking"

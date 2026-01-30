@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication(scanBasePackages = { "com.ecommerce.inventory", "com.ecommerce.common" })
-@EnableJpaRepositories(basePackages = { "com.ecommerce.inventory", "com.ecommerce.common" })
-@EntityScan(basePackages = { "com.ecommerce.inventory", "com.ecommerce.common" })
+@EnableJpaRepositories(basePackages = { "com.ecommerce.inventory" })
+@EntityScan(basePackages = { "com.ecommerce.inventory" })
 @EnableRetry
 public class InventoryServiceApplication {
 
