@@ -11,8 +11,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * Handles payment processing for orders.
  */
 @SpringBootApplication(scanBasePackages = { "com.ecommerce.payment", "com.ecommerce.common" })
-@EnableJpaRepositories(basePackages = { "com.ecommerce.payment", "com.ecommerce.common" })
-@EntityScan(basePackages = { "com.ecommerce.payment", "com.ecommerce.common" })
+@EnableJpaRepositories(basePackages = { "com.ecommerce.payment" })
+@EntityScan(basePackages = { "com.ecommerce.payment" })
 @EnableScheduling
 public class PaymentServiceApplication {
 

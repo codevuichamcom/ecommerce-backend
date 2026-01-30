@@ -12,7 +12,6 @@ import java.time.temporal.ChronoUnit;
 /**
  * Adapter implementing ProcessedEventRepository using JPA.
  */
-@Component
 public class ProcessedEventPersistenceAdapter implements ProcessedEventRepository {
 
     private final ProcessedEventJpaRepository jpaRepository;
