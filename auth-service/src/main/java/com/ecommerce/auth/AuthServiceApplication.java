@@ -13,8 +13,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @version 1.0.0
  */
 @SpringBootApplication(scanBasePackages = { "com.ecommerce.auth", "com.ecommerce.common" })
-@EnableJpaRepositories(basePackages = { "com.ecommerce.auth", "com.ecommerce.common" })
-@EntityScan(basePackages = { "com.ecommerce.auth", "com.ecommerce.common" })
+@EnableJpaRepositories(basePackages = { "com.ecommerce.auth" })
+@EntityScan(basePackages = { "com.ecommerce.auth" })
 @EnableJpaAuditing
 public class AuthServiceApplication {
 
