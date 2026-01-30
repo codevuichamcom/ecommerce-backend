@@ -7,8 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication(scanBasePackages = { "com.ecommerce.order", "com.ecommerce.common" })
-@EnableJpaRepositories(basePackages = { "com.ecommerce.order", "com.ecommerce.common" })
-@EntityScan(basePackages = { "com.ecommerce.order", "com.ecommerce.common" })
+@EnableJpaRepositories(basePackages = { "com.ecommerce.order" })
+@EntityScan(basePackages = { "com.ecommerce.order" })
 @ConfigurationPropertiesScan
 public class OrderServiceApplication {
 

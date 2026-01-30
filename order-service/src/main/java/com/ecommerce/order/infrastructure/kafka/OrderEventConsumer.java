@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Component
 @Slf4j
@@ -94,18 +93,14 @@ public class OrderEventConsumer {
         if (eventId == null || eventId.isBlank()) {
             throw new IllegalArgumentException("Event ID cannot be null or blank");
         }
-        UUID uuid = UUID.fromString(eventId);
-        if (uuid == null) {
-            return false;
-        }
-        return processedEventRepository.existsById(uuid);
+        return processedEventRepository.existsById(eventId);
     }
 
     private void markAsProcessed(String eventId) {
-        processedEventRepository.save(new ProcessedEventEntity(
-                UUID.fromString(eventId),
-                "order-service",
-                Instant.now()));
+        processedEventRepository.save(ProcessedEventEntity.builder()
+                .eventId(eventId)
+                .processedAt(Instant.now())
+                .build());
     }
 
     // ARCH-001: Delegate to application service instead of manipulating domain

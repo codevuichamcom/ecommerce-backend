@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,7 +53,7 @@ class OrderEventConsumerTest {
                 eventId, Instant.now(), null, orderIdStr);
         String message = objectMapper.writeValueAsString(event);
 
-        when(processedEventRepository.existsById(any(UUID.class))).thenReturn(false);
+        when(processedEventRepository.existsById(anyString())).thenReturn(false);
 
         // When
         orderEventConsumer.handleInventoryEvents(message);
@@ -67,7 +68,7 @@ class OrderEventConsumerTest {
         // Given
         String eventId = UUID.randomUUID().toString();
         String message = "{\"eventId\":\"" + eventId + "\"}";
-        when(processedEventRepository.existsById(any(UUID.class))).thenReturn(true);
+        when(processedEventRepository.existsById(anyString())).thenReturn(true);
 
         // When
         orderEventConsumer.handleInventoryEvents(message);
@@ -86,7 +87,7 @@ class OrderEventConsumerTest {
                 "cust_123", BigDecimal.TEN, "USD", "TXN-123");
         String message = objectMapper.writeValueAsString(event);
 
-        when(processedEventRepository.existsById(any(UUID.class))).thenReturn(false);
+        when(processedEventRepository.existsById(anyString())).thenReturn(false);
 
         // When
         orderEventConsumer.handlePaymentEvents(message);

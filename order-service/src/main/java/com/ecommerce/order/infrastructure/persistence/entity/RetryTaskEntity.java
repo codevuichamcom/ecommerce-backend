@@ -17,10 +17,10 @@ public class RetryTaskEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String payload;
 
-    @Column(nullable = false)
+    @Column(name = "retry_count", nullable = false)
     private int attemptCount;
 
-    @Column(nullable = false)
+    @Column(name = "max_retries", nullable = false)
     private int maxAttempts;
 
     private Instant nextRetryAt;
@@ -32,6 +32,12 @@ public class RetryTaskEntity {
     @Column(nullable = false)
     private RetryStatus status;
 
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String lastError;
+
     public RetryTaskEntity() {
     }
 
@@ -42,6 +48,7 @@ public class RetryTaskEntity {
         this.maxAttempts = maxAttempts;
         this.attemptCount = 0;
         this.createdAt = Instant.now();
+        this.updatedAt = this.createdAt;
         this.status = RetryStatus.PENDING;
         this.nextRetryAt = this.createdAt; // Retry immediately or soon
     }
@@ -109,5 +116,21 @@ public class RetryTaskEntity {
 
     public void setStatus(RetryStatus status) {
         this.status = status;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    public void setLastError(String lastError) {
+        this.lastError = lastError;
     }
 }
