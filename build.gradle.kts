@@ -1,16 +1,25 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
+buildscript {
+    dependencies {
+        classpath("org.postgresql:postgresql:42.7.2")
+        classpath("org.flywaydb:flyway-database-postgresql:10.11.0")
+    }
+}
+
 plugins {
     java
     jacoco
-    id("org.springframework.boot") version "3.5.10" apply false
+    id("org.springframework.boot") version "3.4.2" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
+    id("org.flywaydb.flyway") version "10.11.0" apply false
 }
 
 // Phase 4: Resilience & Testing - Version Management
 ext {
     set("resilience4jVersion", "2.2.0")
+    set("flywayVersion", "10.11.0")
 }
 
 
@@ -38,7 +47,7 @@ subprojects {
     // Dependency management - Spring Boot BOM
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.10")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.4.2")
         }
     }
     
