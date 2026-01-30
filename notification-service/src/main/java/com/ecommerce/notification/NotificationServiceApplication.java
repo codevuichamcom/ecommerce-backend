@@ -11,8 +11,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * Handles sending notifications (email, SMS, push) for e-commerce events.
  */
 @SpringBootApplication(scanBasePackages = { "com.ecommerce.notification", "com.ecommerce.common" })
-@EnableJpaRepositories(basePackages = { "com.ecommerce.notification", "com.ecommerce.common" })
-@EntityScan(basePackages = { "com.ecommerce.notification", "com.ecommerce.common" })
+@EnableJpaRepositories(basePackages = { "com.ecommerce.notification" })
+@EntityScan(basePackages = { "com.ecommerce.notification" })
 @EnableScheduling
 public class NotificationServiceApplication {
 
