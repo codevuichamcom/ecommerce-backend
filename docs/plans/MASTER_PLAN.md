@@ -14,6 +14,7 @@ Modern e-commerce backend built with **Java 21** and **Spring Boot 3.5.9** follo
 | **Phase 2** | Distributed Flow (Payment, Notification, Kafka) | ✅ Complete |
 | **Phase 3** | Enterprise (Security, Gateway, Observability) | ✅ Complete |
 | **Phase 4** | Resilience & Testing (Circuit Breaker, Chaos) | 🔜 Planned |
+| **Phase 5** | Data Seeding & Development Environment | 🔜 Planned |
 
 ---
 
@@ -179,6 +180,48 @@ See [PHASE3_IMPLEMENTATION_PLAN.md](./PHASE3_IMPLEMENTATION_PLAN.md) for details
 - ❌ Mutation Testing - Nice-to-have, không critical
 
 See [PHASE4_IMPLEMENTATION_PLAN.md](./PHASE4_IMPLEMENTATION_PLAN.md) for details.
+
+---
+
+## 🌱 Phase 5: Data Seeding & Development Environment
+
+### Core Features
+1. **Reference Data Seeding** (Flyway Migrations)
+   - System users (admin, service-account)
+   - Default roles and permissions
+   - Idempotent migrations
+
+2. **Development Data Seeders** (DataFaker)
+   - Product Service: 120 products with realistic names/prices
+   - Auth Service: 120 customer users
+   - Inventory Service: Stock levels for all products
+   - Order Service: 150 orders with various statuses
+
+3. **Profile-based Configuration**
+   - `dev` profile for local development
+   - `staging` profile for testing environments
+   - Reproducible data with fixed random seeds
+
+4. **Seeding Execution Scripts**
+   - Gradle tasks for seed execution
+   - Docker Compose integration
+   - Order-aware seeding (dependencies)
+
+### New Modules/Files
+- `seed/config/` - DataFaker configuration
+- `seed/factory/` - Data factory classes
+- `seed/initializer/` - ApplicationRunner seeders
+- Flyway migrations for reference data
+
+### Data Distribution
+| Service | Count | Distribution |
+|---------|-------|--------------|
+| Products | 120 | 80% Active, 10% Inactive, 5% Draft, 5% Discontinued |
+| Users | 122 | 120 Customers + 2 System (Admin, Service) |
+| Inventory | 120 | 70% In Stock, 20% Low Stock, 10% Out of Stock |
+| Orders | 150 | 40% Delivered, 20% Shipped, 15% Paid, 10% Confirmed, 10% Pending, 5% Cancelled |
+
+See [PHASE5_DATA_SEEDING_PLAN.md](./PHASE5_DATA_SEEDING_PLAN.md) for details.
 
 ---
 

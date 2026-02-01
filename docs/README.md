@@ -28,8 +28,18 @@ Perfect for new team members:
 
 - **[Onboarding Guide](ONBOARDING.md)** - 3-day ramp-up plan for new developers
 - **[Development Guide](DEVELOPMENT.md)** - Local environment setup and common tasks
-- **[Source Code Learning Roadmap](SOURCE_CODE_LEARNING_ROADMAP.md)** - 5-phase guide to understand the codebase
+- **[Source Code Learning Roadmap](guides/SOURCE_CODE_LEARNING_ROADMAP.md)** - 5-phase guide to understand the codebase
+- **[AI Rules & Workflows](guides/AI_RULES_AND_WORKFLOWS.md)** - Guidelines for AI-assisted development
 - **[Glossary](GLOSSARY.md)** - Domain terminology dictionary
+
+### 📅 Project Plans & Roadmap
+
+Track project progress and future plans:
+
+- **[Master Plan](plans/MASTER_PLAN.md)** - Overall project vision and phase overview
+- **[Implementation Plans](plans/)** - Detailed plans for each development phase (Phase 1-5)
+- **[Task Trackers](tracking/)** - Progress tracking and status checklists
+- **[Code Reviews](reviews/)** - Summaries and issues from technical reviews
 
 ### 🏗️ Architecture
 

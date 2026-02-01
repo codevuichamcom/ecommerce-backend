@@ -438,4 +438,4 @@ implementation("io.micrometer:micrometer-registry-prometheus")
 
 ## 📊 Progress Tracking
 
-See [PHASE3_TASK_TRACKER.md](./PHASE3_TASK_TRACKER.md) for detailed task tracking.
+See [PHASE3_TASK_TRACKER.md](../tracking/PHASE3_TASK_TRACKER.md) for detailed task tracking.

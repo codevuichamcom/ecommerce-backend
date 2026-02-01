@@ -251,4 +251,4 @@ public sealed interface SagaState {
 
 ## 📋 Progress Tracking
 
-See [PHASE2_TASK_TRACKER.md](./PHASE2_TASK_TRACKER.md) for detailed task tracking.
+See [PHASE2_TASK_TRACKER.md](../tracking/PHASE2_TASK_TRACKER.md) for detailed task tracking.
