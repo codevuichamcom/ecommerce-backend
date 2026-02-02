@@ -4,7 +4,6 @@ import com.ecommerce.common.kafka.ProcessedEvent;
 import com.ecommerce.common.kafka.ProcessedEventRepository;
 import com.ecommerce.notification.infrastructure.persistence.entity.ProcessedEventEntity;
 import com.ecommerce.notification.infrastructure.persistence.repository.ProcessedEventJpaRepository;
-import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

@@ -12,11 +12,13 @@ public class ProcessedEventPersistenceAdapter implements ProcessedEventRepositor
     private final ProcessedEventJpaRepository jpaRepository;
 
     @Override
+    @SuppressWarnings("null")
     public boolean existsByEventId(String eventId) {
         return jpaRepository.existsById(eventId);
     }
 
     @Override
+    @SuppressWarnings("null")
     public ProcessedEvent save(ProcessedEvent event) {
         ProcessedEventEntity entity = ProcessedEventEntity.builder()
                 .eventId(event.eventId())

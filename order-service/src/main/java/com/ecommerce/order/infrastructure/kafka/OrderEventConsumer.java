@@ -96,6 +96,7 @@ public class OrderEventConsumer {
         return processedEventRepository.existsById(eventId);
     }
 
+    @SuppressWarnings("null")
     private void markAsProcessed(String eventId) {
         processedEventRepository.save(ProcessedEventEntity.builder()
                 .eventId(eventId)

@@ -5,7 +5,6 @@ import com.ecommerce.common.kafka.ProcessedEventRepository;
 import com.ecommerce.inventory.infrastructure.persistence.entity.ProcessedEventEntity;
 import com.ecommerce.inventory.infrastructure.persistence.repository.ProcessedEventJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 public class ProcessedEventPersistenceAdapter implements ProcessedEventRepository {
@@ -14,11 +13,18 @@ public class ProcessedEventPersistenceAdapter implements ProcessedEventRepositor
 
     @Override
     public boolean existsByEventId(String eventId) {
+        if (eventId == null) {
+            return false;
+        }
         return jpaRepository.existsById(eventId);
     }
 
     @Override
+    @SuppressWarnings("null")
     public ProcessedEvent save(ProcessedEvent event) {
+        if (event == null) {
+            return null;
+        }
         ProcessedEventEntity entity = ProcessedEventEntity.builder()
                 .eventId(event.eventId())
                 .processedAt(event.processedAt())
