@@ -12,20 +12,24 @@ public class ProcessedEventPersistenceAdapter implements ProcessedEventRepositor
     private final ProcessedEventJpaRepository jpaRepository;
 
     @Override
-    @SuppressWarnings("null")
     public boolean existsByEventId(String eventId) {
+        if (eventId == null) {
+            return false;
+        }
         return jpaRepository.existsById(eventId);
     }
 
     @Override
-    @SuppressWarnings("null")
     public ProcessedEvent save(ProcessedEvent event) {
+        if (event == null) {
+            return null;
+        }
         ProcessedEventEntity entity = ProcessedEventEntity.builder()
                 .eventId(event.eventId())
                 .processedAt(event.processedAt())
                 .build();
 
-        jpaRepository.save(entity);
+        jpaRepository.save(java.util.Objects.requireNonNull(entity));
         return event;
     }
 

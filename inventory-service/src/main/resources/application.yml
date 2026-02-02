@@ -76,6 +76,6 @@ logging:
     "[org.hibernate.SQL]": DEBUG
 
 # Service Integration
-product:
-  service:
+services:
+  product:
     url: ${PRODUCT_SERVICE_URL:http://localhost:8081}

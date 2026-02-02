@@ -96,12 +96,13 @@ public class OrderEventConsumer {
         return processedEventRepository.existsById(eventId);
     }
 
-    @SuppressWarnings("null")
     private void markAsProcessed(String eventId) {
-        processedEventRepository.save(ProcessedEventEntity.builder()
+        if (eventId == null)
+            return;
+        processedEventRepository.save(java.util.Objects.requireNonNull(ProcessedEventEntity.builder()
                 .eventId(eventId)
                 .processedAt(Instant.now())
-                .build());
+                .build()));
     }
 
     // ARCH-001: Delegate to application service instead of manipulating domain

@@ -180,7 +180,6 @@ public class DevDataInitializer implements ApplicationRunner {
 
     private static final int MAX_PAGES = 50; // Safety break
 
-    @SuppressWarnings("null")
     private List<String> fetchIdsWithPagination(String serviceName, String baseUrl, String endpoint,
             ContentMapper customMapper) {
         List<String> allIds = new ArrayList<>();
@@ -188,10 +187,12 @@ public class DevDataInitializer implements ApplicationRunner {
         boolean hasMore = true;
 
         while (hasMore && page < MAX_PAGES) {
-            String url = String.format("%s%s?size=%d&page=%d", baseUrl, endpoint, PAGE_SIZE, page);
+            String url = java.util.Objects
+                    .requireNonNull(String.format("%s%s?size=%d&page=%d", baseUrl, endpoint, PAGE_SIZE, page));
 
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    url, HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, Object>>() {
+                    url, java.util.Objects.requireNonNull(HttpMethod.GET), null,
+                    new ParameterizedTypeReference<Map<String, Object>>() {
                     });
 
             Map<String, Object> body = response.getBody();

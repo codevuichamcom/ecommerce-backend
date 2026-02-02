@@ -132,12 +132,15 @@ public class ProductServiceClient implements ProductServicePort {
         );
     }
 
-    @SuppressWarnings("null")
     private void cacheProduct(ProductDetails details) {
+        if (details == null) {
+            return;
+        }
         try {
             String json = objectMapper.writeValueAsString(details);
             // Cache for 1 hour (fallback data doesn't need to be infinitely long-lived)
-            redisTemplate.opsForValue().set(CACHE_KEY_PREFIX + details.id(), json, java.time.Duration.ofHours(1));
+            redisTemplate.opsForValue().set(CACHE_KEY_PREFIX + details.id(), java.util.Objects.requireNonNull(json),
+                    java.util.Objects.requireNonNull(java.time.Duration.ofHours(1)));
         } catch (Exception e) {
             log.warn("Failed to cache product {}: {}", details.id(), e.getMessage());
         }

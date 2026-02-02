@@ -20,7 +20,6 @@ public class ProcessedEventPersistenceAdapter implements ProcessedEventRepositor
     }
 
     @Override
-    @SuppressWarnings("null")
     public ProcessedEvent save(ProcessedEvent event) {
         if (event == null) {
             return null;
@@ -30,7 +29,7 @@ public class ProcessedEventPersistenceAdapter implements ProcessedEventRepositor
                 .processedAt(event.processedAt())
                 .build();
 
-        jpaRepository.save(entity);
+        jpaRepository.save(java.util.Objects.requireNonNull(entity));
         return event;
     }
 

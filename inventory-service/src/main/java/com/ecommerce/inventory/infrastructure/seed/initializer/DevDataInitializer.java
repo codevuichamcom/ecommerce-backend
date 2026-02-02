@@ -39,7 +39,7 @@ public class DevDataInitializer implements ApplicationRunner {
     private final InventoryDataFactory inventoryDataFactory;
     private final RestTemplate restTemplate;
 
-    private final com.ecommerce.inventory.infrastructure.config.ProductServiceProperties productServiceProperties;
+    private final com.ecommerce.inventory.infrastructure.config.ServiceProperties serviceProperties;
 
     private static final int BATCH_SIZE = 50;
 
@@ -69,7 +69,7 @@ public class DevDataInitializer implements ApplicationRunner {
         long startTime = System.currentTimeMillis();
 
         log.info("No inventory found. Fetching products from Product Service ({}) ...",
-                productServiceProperties.getUrl());
+                serviceProperties.getProduct().getUrl());
 
         List<String> productIds = fetchProductIds();
 
@@ -123,7 +123,7 @@ public class DevDataInitializer implements ApplicationRunner {
                 return fetchProductIdsWithPagination();
             } catch (ResourceAccessException e) {
                 log.warn("Could not connect to Product Service at {} (attempt {}/{}). Is it running?",
-                        productServiceProperties.getUrl(), attempt, MAX_RETRIES);
+                        serviceProperties.getProduct().getUrl(), attempt, MAX_RETRIES);
 
                 if (attempt < MAX_RETRIES) {
                     try {
@@ -150,23 +150,22 @@ public class DevDataInitializer implements ApplicationRunner {
 
         log.error("FATAL: Failed to fetch products from Product Service after {} attempts", MAX_RETRIES);
         throw new IllegalStateException(
-                "Product Service unavailable at " + productServiceProperties.getUrl() + " after " + MAX_RETRIES
+                "Product Service unavailable at " + serviceProperties.getProduct().getUrl() + " after " + MAX_RETRIES
                         + " retries");
     }
 
-    @SuppressWarnings("null")
     private List<String> fetchProductIdsWithPagination() {
         List<String> allProductIds = new ArrayList<>();
         int page = 0;
         boolean hasMore = true;
 
         while (hasMore) {
-            String url = String.format("%s/api/products?size=%d&page=%d",
-                    productServiceProperties.getUrl(), PAGE_SIZE, page);
+            String url = java.util.Objects.requireNonNull(String.format("%s/api/products?size=%d&page=%d",
+                    serviceProperties.getProduct().getUrl(), PAGE_SIZE, page));
 
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     url,
-                    HttpMethod.GET,
+                    java.util.Objects.requireNonNull(HttpMethod.GET),
                     null,
                     new ParameterizedTypeReference<Map<String, Object>>() {
                     });
