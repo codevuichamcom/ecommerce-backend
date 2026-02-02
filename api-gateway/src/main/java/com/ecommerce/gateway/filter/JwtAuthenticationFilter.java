@@ -83,6 +83,11 @@ public class JwtAuthenticationFilter implements WebFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
 
+        // Check for OPTIONS request (CORS preflight)
+        if (org.springframework.http.HttpMethod.OPTIONS.equals(request.getMethod())) {
+            return chain.filter(exchange);
+        }
+
         // Check if endpoint is public
         if (isPublicEndpoint(path)) {
             // Special case: GET /api/products is public, but others need ADMIN/SERVICE

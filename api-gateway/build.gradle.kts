@@ -6,7 +6,7 @@ plugins {
 description = "API Gateway - Single entry point for all microservices"
 
 // Spring Cloud version management
-ext["spring-cloud.version"] = "2024.0.0"
+ext["spring-cloud.version"] = "2025.0.0"
 
 dependencies {
     // Spring Cloud Gateway
