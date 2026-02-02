@@ -16,10 +16,9 @@ public class InventoryOutboxRepositoryAdapter implements OutboxRepository {
     }
 
     @Override
-    @SuppressWarnings("null")
     public OutboxMessage save(OutboxMessage message) {
         OutboxEventEntity entity = toEntity(message);
-        OutboxEventEntity saved = repository.save(entity);
+        OutboxEventEntity saved = repository.save(java.util.Objects.requireNonNull(entity));
         return toDomain(saved);
     }
 
@@ -31,8 +30,9 @@ public class InventoryOutboxRepositoryAdapter implements OutboxRepository {
     }
 
     @Override
-    @SuppressWarnings("null")
     public void markAsPublished(String messageId) {
+        if (messageId == null)
+            return;
         repository.findById(messageId).ifPresent(entity -> {
             entity.setPublished(true);
             entity.setPublishedAt(java.time.Instant.now());

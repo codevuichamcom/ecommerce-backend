@@ -25,18 +25,16 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     @Override
-    @SuppressWarnings("null")
     public Order save(Order order) {
         var entity = orderMapper.toJpaEntity(order);
-        var saved = jpaRepository.save(entity);
+        var saved = jpaRepository.save(java.util.Objects.requireNonNull(entity));
         return orderMapper.toDomainEntity(saved);
     }
 
     @Override
-    @SuppressWarnings("null")
     public Order saveAndFlush(Order order) {
         var entity = orderMapper.toJpaEntity(order);
-        var saved = jpaRepository.saveAndFlush(entity);
+        var saved = jpaRepository.saveAndFlush(java.util.Objects.requireNonNull(entity));
         return orderMapper.toDomainEntity(saved);
     }
 

@@ -27,17 +27,15 @@ public class NotificationPersistenceAdapter implements NotificationRepository {
     }
 
     @Override
-    @SuppressWarnings("null")
     public Notification save(Notification notification) {
         var entity = notificationMapper.toEntity(notification);
-        var savedEntity = jpaRepository.save(entity);
+        var savedEntity = jpaRepository.save(java.util.Objects.requireNonNull(entity));
         return notificationMapper.toDomainEntity(savedEntity);
     }
 
     @Override
-    @SuppressWarnings("null")
     public Optional<Notification> findById(NotificationId id) {
-        return jpaRepository.findById(id.value())
+        return jpaRepository.findById(java.util.Objects.requireNonNull(id.value()))
                 .map(notificationMapper::toDomainEntity);
     }
 

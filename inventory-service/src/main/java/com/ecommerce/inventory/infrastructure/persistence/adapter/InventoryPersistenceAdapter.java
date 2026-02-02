@@ -26,10 +26,9 @@ public class InventoryPersistenceAdapter implements InventoryRepository {
     }
 
     @Override
-    @SuppressWarnings("null")
     public Inventory save(Inventory inventory) {
         InventoryJpaEntity entity = inventoryMapper.toJpaEntity(inventory);
-        return inventoryMapper.toDomainEntity(jpaRepository.save(entity));
+        return inventoryMapper.toDomainEntity(jpaRepository.save(java.util.Objects.requireNonNull(entity)));
     }
 
     @Override

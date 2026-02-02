@@ -27,10 +27,9 @@ public class ProductPersistenceAdapter implements ProductRepository {
     }
 
     @Override
-    @SuppressWarnings("null")
     public Product save(Product product) {
         var entity = productMapper.toJpaEntity(product);
-        var savedEntity = jpaRepository.save(entity);
+        var savedEntity = jpaRepository.save(java.util.Objects.requireNonNull(entity));
         return productMapper.toDomainEntity(savedEntity);
     }
 

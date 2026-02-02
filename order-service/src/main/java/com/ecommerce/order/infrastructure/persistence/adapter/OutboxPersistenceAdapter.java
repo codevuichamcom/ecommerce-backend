@@ -50,13 +50,15 @@ public class OutboxPersistenceAdapter implements OutboxRepository {
 
     @Override
     @Transactional
-    @SuppressWarnings("null")
     public void markAsPublished(String messageId) {
-        repository.findById(UUID.fromString(messageId)).ifPresent(entity -> {
-            entity.setPublished(true);
-            entity.setPublishedAt(Instant.now());
-            repository.save(entity);
-        });
+        if (messageId == null)
+            return;
+        repository.findById(java.util.Objects.requireNonNull(java.util.UUID.fromString(messageId)))
+                .ifPresent(entity -> {
+                    entity.setPublished(true);
+                    entity.setPublishedAt(Instant.now());
+                    repository.save(java.util.Objects.requireNonNull(entity));
+                });
     }
 
     @Override

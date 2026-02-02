@@ -25,10 +25,9 @@ public class PaymentPersistenceAdapter implements PaymentRepository {
     }
 
     @Override
-    @SuppressWarnings("null")
     public Payment save(Payment payment) {
         var entity = paymentMapper.toEntity(payment);
-        return paymentMapper.toDomainEntity(jpaRepository.save(entity));
+        return paymentMapper.toDomainEntity(jpaRepository.save(java.util.Objects.requireNonNull(entity)));
     }
 
     @Override

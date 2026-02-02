@@ -4,7 +4,7 @@
 # Build: docker build --build-arg SERVICE_NAME=product-service -t product-service .
 # ============================================================================
 
-FROM gradle:8.11-jdk21-alpine AS builder
+FROM gradle:8.11-jdk21 AS builder
 
 ARG SERVICE_NAME
 WORKDIR /app

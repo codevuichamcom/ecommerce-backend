@@ -17,10 +17,9 @@ import java.time.Duration;
 public class CacheConfig {
 
         @Bean
-        @SuppressWarnings("null")
         public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
                 RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                                .entryTtl(Duration.ofMinutes(10))
+                                .entryTtl(java.util.Objects.requireNonNull(Duration.ofMinutes(10)))
                                 .disableCachingNullValues()
                                 .serializeKeysWith(
                                                 RedisSerializationContext.SerializationPair
@@ -28,10 +27,14 @@ public class CacheConfig {
                                 .serializeValuesWith(RedisSerializationContext.SerializationPair
                                                 .fromSerializer(new GenericJackson2JsonRedisSerializer()));
 
-                return RedisCacheManager.builder(connectionFactory)
+                return RedisCacheManager.builder(java.util.Objects.requireNonNull(connectionFactory))
                                 .cacheDefaults(config)
-                                .withCacheConfiguration("products", config.entryTtl(Duration.ofMinutes(10)))
-                                .withCacheConfiguration("product-list", config.entryTtl(Duration.ofMinutes(5)))
+                                .withCacheConfiguration("products",
+                                                config.entryTtl(java.util.Objects
+                                                                .requireNonNull(Duration.ofMinutes(10))))
+                                .withCacheConfiguration("product-list",
+                                                config.entryTtl(java.util.Objects
+                                                                .requireNonNull(Duration.ofMinutes(5))))
                                 .build();
         }
 }
