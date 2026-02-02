@@ -10,6 +10,7 @@ Welcome to the E-commerce Backend documentation! This page serves as your centra
 |--------------|-------|
 | **Get started as a new developer** | [ONBOARDING.md](ONBOARDING.md) |
 | **Set up my local environment** | [DEVELOPMENT.md](DEVELOPMENT.md) |
+| **Generate development data** | [Data Seeding Guide](tracking/PHASE5_COMPLETION.md) |
 | **Understand the system architecture** | [architecture/system-overview.md](architecture/system-overview.md) |
 | **View database schemas** | [architecture/data-model.md](architecture/data-model.md) |
 | **Find API endpoints** | [Swagger UI](#api-documentation) |
@@ -103,6 +104,27 @@ Quality assurance and testing:
 - **[Testing Guide](TESTING.md)** - Testing strategy and guidelines
 - **[Integration Tests](../*/src/test/)** - Service-specific test suites
 
+### 🌱 Data Seeding
+
+Development data generation and management:
+
+- **[Phase 5 Completion Report](tracking/PHASE5_COMPLETION.md)** - Complete data seeding implementation guide
+- **[Phase 5 Implementation Plan](plans/PHASE5_DATA_SEEDING_PLAN.md)** - Detailed step-by-step implementation
+- **Seeding Components**:
+  - [Auth Service Seeders](../auth-service/src/main/java/com/ecommerce/auth/infrastructure/seed/) - 122 users (120 customers + 2 system)
+  - [Product Service Seeders](../product-service/src/main/java/com/ecommerce/product/infrastructure/seed/) - 120 products across 10 categories
+  - [Inventory Service Seeders](../inventory-service/src/main/java/com/ecommerce/inventory/infrastructure/seed/) - 120 inventory records
+  - [Order Service Seeders](../order-service/src/main/java/com/ecommerce/order/infrastructure/seed/) - 150 orders with items
+
+**Quick Start**:
+```bash
+# Start services with dev profile to auto-seed data
+./gradlew :auth-service:bootRun --args='--spring.profiles.active=dev'
+./gradlew :product-service:bootRun --args='--spring.profiles.active=dev'
+./gradlew :inventory-service:bootRun --args='--spring.profiles.active=dev'
+./gradlew :order-service:bootRun --args='--spring.profiles.active=dev'
+```
+
 ### 📝 Architecture Decision Records (ADR)
 
 Historical context for design decisions:
@@ -151,6 +173,7 @@ Per-service detailed documentation:
  - [x] Testing Guide
  - [x] Performance Guide
  - [x] Service Catalog
+ - [x] Data Seeding Implementation (Phase 5)
 
 ---
 
@@ -195,6 +218,10 @@ Per-service detailed documentation:
 **Database Design**:
 - [Data Model](architecture/data-model.md)
 - [Migration Guide](DEVELOPMENT.md#database-migrations)
+
+**Development Data**:
+- [Data Seeding Guide](tracking/PHASE5_COMPLETION.md)
+- [Seeding Implementation Plan](plans/PHASE5_DATA_SEEDING_PLAN.md)
 
 ---
 
@@ -284,8 +311,8 @@ Default credentials: `postgres` / `postgres`
 | **Developer Onboarding Time** | 3 days | ~2 days |
 | **Time to Find API Contract** | < 1 min | < 10 sec |
 
-**Last Updated**: 2026-01-20  
-**Next Review**: 2026-02-19
+**Last Updated**: 2026-02-02  
+**Next Review**: 2026-03-02
 
 ---
 
