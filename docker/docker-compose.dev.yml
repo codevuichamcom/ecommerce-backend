@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  auth-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,dev
+
+  product-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,dev
+
+  inventory-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,dev
+
+  order-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,dev
+
+  payment-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,dev
+
+  notification-service:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,dev
+
+  api-gateway:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,dev
