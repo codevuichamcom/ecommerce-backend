@@ -11,7 +11,7 @@ buildscript {
 plugins {
     java
     jacoco
-    id("org.springframework.boot") version "3.4.2" apply false
+    id("org.springframework.boot") version "3.5.10" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
     id("org.flywaydb.flyway") version "10.11.0" apply false
 }
@@ -47,7 +47,7 @@ subprojects {
     // Dependency management - Spring Boot BOM
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.4.2")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.10")
         }
     }
     
@@ -70,6 +70,9 @@ subprojects {
         "implementation"("io.zipkin.reporter2:zipkin-reporter-brave")
         "implementation"("io.micrometer:micrometer-registry-prometheus")
         "implementation"("org.springframework.boot:spring-boot-starter-actuator")
+
+        // DataFaker for realistic data generation
+        "implementation"("net.datafaker:datafaker:2.1.0")
     }
     
     tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
