@@ -3,7 +3,7 @@ package com.ecommerce.order.infrastructure.client;
 import com.ecommerce.common.exception.NotFoundException;
 import com.ecommerce.order.application.port.out.ProductServicePort.ProductDetails;
 import com.ecommerce.order.infrastructure.config.ServiceProperties;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import okhttp3.mockwebserver.MockResponse;
@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.await;
 
 /**
  * Phase 4.1: Unit tests for ProductServiceClient with Resilience4j patterns

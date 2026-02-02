@@ -16,7 +16,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.math.BigDecimal;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * HTTP client for Product service using WebClient.
@@ -133,6 +132,7 @@ public class ProductServiceClient implements ProductServicePort {
         );
     }
 
+    @SuppressWarnings("null")
     private void cacheProduct(ProductDetails details) {
         try {
             String json = objectMapper.writeValueAsString(details);
