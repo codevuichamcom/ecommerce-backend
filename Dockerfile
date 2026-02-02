@@ -9,11 +9,17 @@ FROM gradle:8.11-jdk21 AS builder
 ARG SERVICE_NAME
 WORKDIR /app
 
+# Set environment variables for better SSL/TLS handling
+ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Djavax.net.ssl.trustStoreType=jks"
+
 # Copy gradle wrapper and build files first (better caching)
 COPY gradle gradle
 COPY gradlew .
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
+
+# Make gradlew executable
+RUN chmod +x gradlew
 
 # Copy common-lib first (needed by all services)
 COPY common-lib common-lib
@@ -21,8 +27,8 @@ COPY common-lib common-lib
 # Copy the specific service
 COPY ${SERVICE_NAME} ${SERVICE_NAME}
 
-# Build the service
-RUN gradle :${SERVICE_NAME}:bootJar -x test --no-daemon
+# Build the service using gradlew wrapper instead of gradle command
+RUN ./gradlew :${SERVICE_NAME}:bootJar -x test --no-daemon --stacktrace
 
 # Extract layers
 RUN mkdir -p extracted && \
