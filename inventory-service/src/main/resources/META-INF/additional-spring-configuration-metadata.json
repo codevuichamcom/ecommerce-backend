@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "product.service.url",
+      "type": "java.lang.String",
+      "description": "URL of the Product Service used for seeding."
+    }
+  ]
+}

@@ -74,3 +74,8 @@ logging:
   level:
     "[com.ecommerce]": DEBUG
     "[org.hibernate.SQL]": DEBUG
+
+# Service Integration
+product:
+  service:
+    url: ${PRODUCT_SERVICE_URL:http://localhost:8081}
