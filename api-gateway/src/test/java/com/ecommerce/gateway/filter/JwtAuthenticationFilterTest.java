@@ -34,6 +34,7 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldPassThroughPublicEndpoints() {
         // Given
         MockServerHttpRequest request = MockServerHttpRequest.post("/auth/login").build();
@@ -48,6 +49,7 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldRejectMissingAuthorizationHeader() {
         // Given
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/orders").build();
@@ -62,6 +64,7 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldAuthenticateValidToken() {
         // Given
         String token = Jwts.builder()
@@ -95,6 +98,7 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldRejectInvalidToken() {
         // Given
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/orders")

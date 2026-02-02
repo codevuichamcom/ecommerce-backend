@@ -164,9 +164,11 @@ public class JwtAuthenticationFilter implements WebFilter, Ordered {
         return publicEndpoints.stream().anyMatch(path::startsWith);
     }
 
+    @NonNull
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus status) {
         exchange.getResponse().setStatusCode(status);
-        return exchange.getResponse().setComplete();
+        return java.util.Objects.requireNonNull(exchange.getResponse().setComplete(),
+                "Response complete Mono must not be null");
     }
 
     @Override
