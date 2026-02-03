@@ -4,7 +4,7 @@
 # Build: docker build --build-arg SERVICE_NAME=product-service -t product-service .
 # ============================================================================
 
-FROM gradle:8.11-jdk21 AS builder
+FROM gradle:8.12-jdk21 AS builder
 
 ARG SERVICE_NAME
 WORKDIR /app
@@ -21,6 +21,11 @@ COPY settings.gradle.kts .
 # Make gradlew executable
 RUN chmod +x gradlew
 
+# Pre-download dependencies (Go-style optimization)
+# This layer will be cached unless build files change
+RUN --mount=type=cache,target=/home/gradle/.gradle \
+    ./gradlew help --no-daemon
+
 # Copy common-lib first (needed by all services)
 COPY common-lib common-lib
 
@@ -28,7 +33,9 @@ COPY common-lib common-lib
 COPY ${SERVICE_NAME} ${SERVICE_NAME}
 
 # Build the service using gradlew wrapper instead of gradle command
-RUN ./gradlew :${SERVICE_NAME}:bootJar -x test --no-daemon --stacktrace
+# Use cache mount for .gradle folder to speed up subsequent builds
+RUN --mount=type=cache,target=/home/gradle/.gradle \
+    ./gradlew :${SERVICE_NAME}:bootJar -x test --no-daemon --stacktrace
 
 # Extract layers
 RUN mkdir -p extracted && \
