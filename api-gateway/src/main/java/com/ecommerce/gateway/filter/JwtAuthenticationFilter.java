@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter implements WebFilter, Ordered {
             "/actuator/health",
             "/actuator/prometheus");
 
-    public JwtAuthenticationFilter(@Value("${jwt.secret}") String secret) {
+    public JwtAuthenticationFilter(@Value("${ecommerce.jwt-secret}") String secret) {
         // SEC-001: Validate JWT secret key length (HS256 requires at least 256 bits =
         // 32 bytes)
         if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {

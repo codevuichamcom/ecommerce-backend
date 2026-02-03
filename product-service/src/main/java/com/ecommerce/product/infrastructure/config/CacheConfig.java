@@ -57,12 +57,14 @@ public class CacheConfig {
                         ObjectMapper redisObjectMapper) {
                 // Create Jackson2JsonRedisSerializer with Object.class
                 // This allows caching any type without requiring @class field
-                Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(redisObjectMapper,
+                Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(
+                                java.util.Objects.requireNonNull(redisObjectMapper),
                                 Object.class);
 
                 // Default cache configuration
                 RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                                .entryTtl(Duration.ofMinutes(10)) // Default TTL: 10 minutes
+                                .entryTtl(java.util.Objects.requireNonNull(Duration.ofMinutes(10))) // Default TTL: 10
+                                                                                                    // minutes
                                 .disableCachingNullValues() // Don't cache null values
                                 .serializeKeysWith(
                                                 RedisSerializationContext.SerializationPair
@@ -71,14 +73,16 @@ public class CacheConfig {
                                                 RedisSerializationContext.SerializationPair
                                                                 .fromSerializer(serializer));
 
-                return RedisCacheManager.builder(connectionFactory)
+                return RedisCacheManager.builder(java.util.Objects.requireNonNull(connectionFactory))
                                 .cacheDefaults(defaultConfig)
                                 // Product detail cache: 10 minutes (frequently accessed, relatively stable)
                                 .withCacheConfiguration("products",
-                                                defaultConfig.entryTtl(Duration.ofMinutes(10)))
+                                                defaultConfig.entryTtl(java.util.Objects
+                                                                .requireNonNull(Duration.ofMinutes(10))))
                                 // Product list cache: 5 minutes (changes more frequently)
                                 .withCacheConfiguration("product-list",
-                                                defaultConfig.entryTtl(Duration.ofMinutes(5)))
+                                                defaultConfig.entryTtl(java.util.Objects
+                                                                .requireNonNull(Duration.ofMinutes(5))))
                                 .build();
         }
 }

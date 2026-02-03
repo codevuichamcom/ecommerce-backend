@@ -59,6 +59,7 @@ ecommerce:
     payment-url: ${SERVICE_PAYMENT_URL:http://localhost:8084}
     notification-url: ${SERVICE_NOTIFICATION_URL:http://localhost:8085}
     auth-url: ${SERVICE_AUTH_URL:http://localhost:8086}
+  jwt-secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
 
 # Server configuration
 server:
@@ -101,7 +102,3 @@ logging:
     "[org.springframework.cloud.gateway]": DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}] %logger{36} - %msg%n"
-
-# JWT Configuration
-jwt:
-  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
