@@ -3,9 +3,9 @@ package com.ecommerce.gateway.filter;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import com.ecommerce.gateway.config.EcommerceProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -43,7 +43,8 @@ public class JwtAuthenticationFilter implements WebFilter, Ordered {
             "/actuator/health",
             "/actuator/prometheus");
 
-    public JwtAuthenticationFilter(@Value("${ecommerce.jwt-secret}") String secret) {
+    public JwtAuthenticationFilter(EcommerceProperties properties) {
+        String secret = properties.getJwtSecret();
         // SEC-001: Validate JWT secret key length (HS256 requires at least 256 bits =
         // 32 bytes)
         if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {

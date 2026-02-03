@@ -2,6 +2,7 @@ package com.ecommerce.gateway.filter;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import com.ecommerce.gateway.config.EcommerceProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.WebFilterChain;
@@ -29,7 +30,9 @@ class JwtAuthenticationFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = new JwtAuthenticationFilter(secretKey);
+        EcommerceProperties properties = new EcommerceProperties();
+        properties.setJwtSecret(secretKey);
+        filter = new JwtAuthenticationFilter(properties);
         chain = mock(WebFilterChain.class);
     }
 

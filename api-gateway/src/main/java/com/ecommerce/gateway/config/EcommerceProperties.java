@@ -4,16 +4,25 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import lombok.Data;
 
-import java.util.Map;
-
 /**
  * Configuration properties for Ecommerce application.
+ * 
  * This class helps IDE to recognize custom properties in application.yml.
  */
 @Configuration
 @ConfigurationProperties(prefix = "ecommerce")
 @Data
 public class EcommerceProperties {
-    private Map<String, String> services;
+    private final Services services = new Services();
     private String jwtSecret;
+
+    @Data
+    public static class Services {
+        private String productUrl = "http://localhost:8081";
+        private String inventoryUrl = "http://localhost:8082";
+        private String orderUrl = "http://localhost:8083";
+        private String paymentUrl = "http://localhost:8084";
+        private String notificationUrl = "http://localhost:8085";
+        private String authUrl = "http://localhost:8086";
+    }
 }
