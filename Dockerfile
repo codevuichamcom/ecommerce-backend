@@ -29,8 +29,15 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
 # Copy common-lib first (needed by all services)
 COPY common-lib common-lib
 
+# Copy shared logback configuration for JSON logging
+COPY docker/logback-spring.xml /tmp/logback-spring.xml
+
 # Copy the specific service
 COPY ${SERVICE_NAME} ${SERVICE_NAME}
+
+# Copy logback-spring.xml to service resources (will override if exists)
+RUN mkdir -p ${SERVICE_NAME}/src/main/resources && \
+    cp /tmp/logback-spring.xml ${SERVICE_NAME}/src/main/resources/logback-spring.xml
 
 # Build the service using gradlew wrapper instead of gradle command
 # Use cache mount for .gradle folder to speed up subsequent builds

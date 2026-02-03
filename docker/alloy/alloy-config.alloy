@@ -1,0 +1,190 @@
+// ============================================================================
+// Grafana Alloy Configuration for E-Commerce Microservices
+// ============================================================================
+// This config collects logs from Docker containers and sends to Loki
+// ============================================================================
+
+// Logging configuration for Alloy itself
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// ============================================================================
+// DOCKER LOGS DISCOVERY
+// ============================================================================
+// Discover all Docker containers automatically
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+
+  // Refresh interval
+  refresh_interval = "5s"
+}
+
+// ============================================================================
+// RELABELING - Add metadata to logs
+// ============================================================================
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  // Keep container name
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  // Keep container image
+  rule {
+    source_labels = ["__meta_docker_container_image"]
+    target_label  = "image"
+  }
+
+  // Extract service name from container name
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/ecommerce-(.*)"
+    target_label  = "service"
+  }
+
+  // Keep compose project
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    target_label  = "compose_project"
+  }
+
+  // Keep compose service name
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "compose_service"
+  }
+
+  // Add environment label
+  rule {
+    source_labels = ["__meta_docker_container_label_environment"]
+    target_label  = "environment"
+    replacement   = "docker"
+  }
+
+  // Set log path
+  rule {
+    source_labels = ["__meta_docker_container_id"]
+    target_label  = "__path__"
+    replacement   = "/var/lib/docker/containers/$1/*-json.log"
+  }
+
+  // Add hostname
+  rule {
+    target_label = "host"
+    replacement  = "docker-host"
+  }
+}
+
+// ============================================================================
+// LOG SCRAPING - Read logs from Docker
+// ============================================================================
+loki.source.docker "docker_logs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_logs.output
+  forward_to = [loki.process.parse_logs.receiver]
+
+  // Relabeling
+  relabel_rules = discovery.relabel.docker_logs.rules
+}
+
+// ============================================================================
+// LOG PROCESSING - Parse and structure logs
+// ============================================================================
+loki.process "parse_logs" {
+  forward_to = [loki.write.loki.receiver]
+
+  // Stage 1: Parse JSON logs (Spring Boot default format)
+  stage.json {
+    expressions = {
+      timestamp  = "timestamp",
+      level      = "level",
+      thread     = "thread",
+      logger     = "logger",
+      message    = "message",
+      trace_id   = "traceId",
+      span_id    = "spanId",
+      user_id    = "userId",
+    }
+  }
+
+  // Stage 2: Extract log level from message if not in JSON
+  stage.regex {
+    expression = "(?P<level>TRACE|DEBUG|INFO|WARN|ERROR|FATAL)"
+  }
+
+  // Stage 3: Add labels from extracted fields
+  stage.labels {
+    values = {
+      level    = "level",
+      trace_id = "trace_id",
+      thread   = "thread",
+    }
+  }
+
+  // Stage 4: Drop noisy logs (optional)
+  stage.match {
+    selector = "{level=\"DEBUG\"} |~ \"Healthcheck\""
+    action   = "drop"
+  }
+
+  // Stage 5: Add timestamp
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339"
+  }
+}
+
+// ============================================================================
+// LOKI WRITE - Send logs to Loki
+// ============================================================================
+loki.write "loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+
+    // Batching configuration for performance
+    batch_wait = "1s"
+    batch_size = "1MiB"  // 1MB
+
+    // Retry configuration
+    max_backoff_period = "5m"
+    max_backoff_retries = 10
+    min_backoff_period = "500ms"
+  }
+
+  // External labels applied to all logs
+  external_labels = {
+    cluster = "ecommerce-backend",
+    job     = "alloy-docker-logs",
+  }
+}
+
+// ============================================================================
+// METRICS - Export Alloy metrics to Prometheus
+// ============================================================================
+prometheus.exporter.self "alloy" { }
+
+prometheus.scrape "alloy" {
+  targets    = prometheus.exporter.self.alloy.targets
+  forward_to = [prometheus.remote_write.prometheus.receiver]
+
+  scrape_interval = "15s"
+}
+
+prometheus.remote_write "prometheus" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+
+    queue_config {
+      capacity          = 10000
+      max_shards        = 10
+      min_shards        = 1
+      max_samples_per_send = 5000
+      batch_send_deadline  = "5s"
+    }
+  }
+}
